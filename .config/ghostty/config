@@ -1,6 +1,6 @@
 font-family = "FiraCode Nerd Font Mono Bold"
 theme = "Kanagawa Wave"
-# theme = retrolegends
 font-size = 20
+background-opacity = 0.9
 
 
