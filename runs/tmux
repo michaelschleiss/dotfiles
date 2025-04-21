@@ -1,12 +1,35 @@
 #!/usr/bin/env bash
 
 # First install tmux
-gh repo clone tmux/tmux ~/tmux
+git clone git@github.com:tmux/tmux.git ~/tmux
 cd ~/tmux
 git fetch
 git checkout 3.5a
+
+os_name="$(uname -s)"
+if [[ "$os_name" == "Darwin" ]]; then
+  brew install automake pkg-config libevent ncurses utf8proc
+  cores=$(sysctl -n hw.ncpu)
+elif [[ "$os_name" == "Linux" ]]; then
+  sudo apt install libutf8proc-dev
+  sudo apt install -y \
+  libevent-dev \
+  libncurses-dev \
+  pkg-config \
+  build-essential \
+  automake \
+  bison
+  cores=$(nproc)
+else
+  echo "Unknown OS: $os_name" > $2
+  exit 1
+fi
+
 sh autogen.sh
-./configure && make
+./configure --enable-utf8proc && make -j"$cores"
+sudo make install
+cd $HOME
+rm -rf ~/tmux
 
 # install tpm
 mkdir -p ~/.config/tmux/plugins

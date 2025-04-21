@@ -3,10 +3,22 @@
 git clone git@github.com:neovim/neovim.git ~/neovim
 cd ~/neovim
 git fetch
-git checkout v0.10.4
+git checkout v0.11.0
 
-# sudo apt install cmake gettext lua5.1 liblua5.1-0-dev
-# make CMAKE_BUILD_TYPE=RelWithDebInfo
-# sudo make install
-#
+os_name="$(uname -s)"
+
+if [[ "$os_name" == "Darwin" ]]; then
+  brew install ninja cmake gettext curl
+  cores=$(sysctl -n hw.ncpu)
+elif [[ "$os_name" == "Linux" ]]; then
+  sudo apt install cmake gettext lua5.1 liblua5.1-0-dev
+  cores=$(nproc)
+else
+  echo "Unknown OS: $os_name" > $2
+  exit 1
+fi
+
+make CMAKE_BUILD_TYPE=RelWithDebInfo -j${cores}
+sudo make install
+
 rm -rf ~/neovim
