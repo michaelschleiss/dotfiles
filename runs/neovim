@@ -13,7 +13,11 @@ if [[ "$os_name" == "Darwin" ]]; then
   brew install ninja cmake gettext curl
   cores=$(sysctl -n hw.ncpu)
 elif [[ "$os_name" == "Linux" ]]; then
+  sudo apt update
   sudo apt install cmake gettext lua5.1 liblua5.1-0-dev
+  # Needed for plugins
+  sudo apt install cargo luarocks golang ripgrep fd-find
+  ln -s $(which fdfind) ~/.local/bin/fd
   cores=$(nproc)
 else
   echo "Unknown OS: $os_name" > $2
@@ -24,3 +28,8 @@ make CMAKE_BUILD_TYPE=RelWithDebInfo -j${cores}
 sudo make install
 
 rm -rf ~/neovim
+
+# Install some post dependencies
+
+
+

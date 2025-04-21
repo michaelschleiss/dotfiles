@@ -3,7 +3,7 @@ return {
 	config = function()
     require('kanagawa').setup({
       compile=false,
-      transparent=true,
+      transparent=false,
     });
 		vim.cmd("colorscheme kanagawa");
 	end,
