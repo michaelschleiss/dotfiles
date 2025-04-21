@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# First install tmux
+gh repo clone tmux/tmux ~/tmux
+cd ~/tmux
+git fetch
+git checkout 3.5a
+sh autogen.sh
+./configure && make
+
+# install tpm
+mkdir -p ~/.config/tmux/plugins
+git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
