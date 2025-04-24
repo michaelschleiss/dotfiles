@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+if [[ -x ".ready_tmux" ]]; then
+  ./.ready_tmux
+elif [[ -x "~/.ready_tmux" ]]; then
+  ~/.ready_tmux
+fi
