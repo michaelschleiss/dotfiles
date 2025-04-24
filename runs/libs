@@ -1,0 +1,5 @@
+# some general libs
+
+git clone git@github.com:junegunn/fzf.git $HOME/fzf
+$HOME/fzf/install
+rm -rf $HOME/fzf
