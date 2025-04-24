@@ -1,0 +1,6 @@
+# fzf functionality
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# Path additions
+export PATH="$HOME/.local/scripts:$PATH"
+

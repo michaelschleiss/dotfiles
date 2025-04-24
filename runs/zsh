@@ -1,0 +1,14 @@
+#!/bin/bash
+
+ZSHRC="$HOME/.zshrc"
+SOURCE_LINE="[[ -f ~/.zsh_profile ]] && source ~/.zsh_profile"
+
+# Check if the export line is already in the .zshrc
+if ! grep -Fxq "$SOURCE_LINE" "$ZSHRC"; then
+  echo "" >> "$ZSHRC"
+  echo "# Added by setup script on $(date)" >> "$ZSHRC"
+  echo "$SOURCE_LINE" >> "$ZSHRC"
+  echo "✅ Added to .zshrc: $SOURCE_LINE"
+else
+  echo "🔁 Already in .zshrc: $SOURCE_LINE"
+fi
