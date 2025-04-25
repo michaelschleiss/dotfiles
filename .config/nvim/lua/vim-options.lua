@@ -15,4 +15,7 @@
   -- Key Remaps
   vim.g.mapleader = " "
   vim.keymap.set("n", "<leader><CR>", ":so ~/.config/nvim/init.lua<CR>")
+  -- window splitting
+  vim.opt.splitright = true
+  vim.opt.splitbelow = true
     
