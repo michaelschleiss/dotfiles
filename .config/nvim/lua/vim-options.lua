@@ -18,4 +18,7 @@
   -- window splitting
   vim.opt.splitright = true
   vim.opt.splitbelow = true
+
+  vim.opt.signcolumn = 'yes'
+
     
