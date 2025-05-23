@@ -15,6 +15,7 @@
   -- Key Remaps
   vim.g.mapleader = " "
   vim.keymap.set("n", "<leader><CR>", ":so ~/.config/nvim/init.lua<CR>")
+  vim.keymap.set("n", "<leader><tab>", "<C-^>", { noremap = true, desc = "Toggle last buffer" })
   -- German Umlaut Insert Mappings using ';;' as prefix
 local umlaut_mappings = {
   a = "ä", o = "ö", u = "ü", s = "ß",
