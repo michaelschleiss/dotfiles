@@ -4,3 +4,5 @@
 # Path additions
 export PATH="$HOME/.local/scripts:$PATH"
 
+# Aliases
+alias inv='nvim $(fd | fzf -m --preview="bat --color=always {}")'

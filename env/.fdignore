@@ -1,0 +1,14 @@
+Library/
+Applications/
+Public/
+.Trash/
+.cache/
+.config/
+.npm/
+.cargo/
+.rustup/
+.rbenv/
+.pyenv/
+.local/
+node_modules/
+.git/
