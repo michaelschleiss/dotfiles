@@ -117,9 +117,13 @@ automatically-unhide-macos-hidden-apps = false
     alt-equal = 'resize smart -50'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
-    alt-1 = 'workspace 1'
-    alt-2 = ['workspace 2', 'exec-and-forget open -a /Applications/Ghostty.app', 'layout floating']
-    alt-3 = ['workspace 3', 'exec-and-forget open -a Safari']
+    alt-1 = ['workspace 1', '''exec-and-forget osascript -e '
+              tell application "Safari"
+              activate
+              end tell'
+            ''']
+    alt-2 = ['workspace 2', 'exec-and-forget open -a /Applications/Ghostty.app']
+    alt-3 = 'workspace 3'
     alt-4 = 'workspace 4'
     alt-5 = 'workspace 5'
     alt-6 = 'workspace 6'
@@ -128,13 +132,13 @@ automatically-unhide-macos-hidden-apps = false
     alt-9 = 'workspace 9'
     alt-a = 'workspace A' # In your config, you can drop workspace bindings that you don't need
     alt-b = 'workspace B'
-    alt-c = 'workspace C'
+    alt-c = ['workspace C', 'exec-and-forget open -a /Applications/ChatGPT.app']
     alt-d = 'workspace D'
     alt-e = 'workspace E'
-    alt-f = 'workspace F'
+    alt-f = ['workspace F', 'exec-and-forget open -a /Applications/Foxglove.app']
     alt-g = 'workspace G'
     alt-i = 'workspace I'
-    alt-m = 'workspace M'
+    alt-m = ['workspace M', 'exec-and-forget open -a /System/Applications/Music.app']
     alt-n = 'workspace N'
     alt-o = 'workspace O'
     alt-p = 'workspace P'
@@ -209,3 +213,23 @@ automatically-unhide-macos-hidden-apps = false
     down = 'volume down'
     up = 'volume up'
     shift-down = ['volume set 0', 'mode main']
+
+[[on-window-detected]]
+    if.app-id = 'com.apple.Safari'
+    run = 'move-node-to-workspace 1' # mnemonics T - Terminal
+
+[[on-window-detected]]
+    if.app-id = 'dev.foxglove.studio'
+    run = 'move-node-to-workspace F' # mnemonics T - Terminal
+
+[[on-window-detected]]
+    if.app-id = 'com.tinyspeck.slackmacgap'
+    run = 'move-node-to-workspace 5' # mnemonics T - Terminal
+
+[[on-window-detected]]
+    if.app-id = 'im.riot.app'
+    run = 'move-node-to-workspace 5' # mnemonics T - Terminal
+
+[[on-window-detected]]
+    if.app-id = 'com.microsoft.Outlook'
+    run = 'move-node-to-workspace 5' # mnemonics T - Terminal
