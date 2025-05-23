@@ -15,6 +15,16 @@
   -- Key Remaps
   vim.g.mapleader = " "
   vim.keymap.set("n", "<leader><CR>", ":so ~/.config/nvim/init.lua<CR>")
+  -- German Umlaut Insert Mappings using ';;' as prefix
+local umlaut_mappings = {
+  a = "ä", o = "ö", u = "ü", s = "ß",
+  A = "Ä", O = "Ö", U = "Ü",
+  [";"] = ";;", -- escape sequence
+}
+for key, char in pairs(umlaut_mappings) do
+  vim.keymap.set("i", ";;" .. key, char, { noremap = true, silent = true })
+end
+
   -- window splitting
   vim.opt.splitright = true
   vim.opt.splitbelow = true
