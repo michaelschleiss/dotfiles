@@ -2,11 +2,15 @@ return {
   "olimorris/codecompanion.nvim",
   opts = {},
   dependencies = {
-    "nvim-lua/plenary.nvim",
-    "nvim-treesitter/nvim-treesitter",
+    { "nvim-lua/plenary.nvim", branch = "master" },
+    { "nvim-treesitter/nvim-treesitter" },
   },
   config = function()
     require("codecompanion").setup({
+      opts = {
+      -- Set debug logging
+      log_level = "DEBUG",
+      },
       strategies = {
         chat = {
           adapter = "anthropic",
