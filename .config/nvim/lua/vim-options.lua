@@ -16,15 +16,18 @@
   vim.g.mapleader = " "
   vim.keymap.set("n", "<leader><CR>", ":so ~/.config/nvim/init.lua<CR>")
   vim.keymap.set("n", "<leader><tab>", "<C-^>", { noremap = true, desc = "Toggle last buffer" })
+  -- Disable number increment/decrement with Ctrl-A and Ctrl-X
+  vim.keymap.set("n", "<C-a>", "<Nop>", { noremap = true, silent = true })
+  vim.keymap.set("n", "<C-x>", "<Nop>", { noremap = true, silent = true })
   -- German Umlaut Insert Mappings using ';;' as prefix
-local umlaut_mappings = {
-  a = "ä", o = "ö", u = "ü", s = "ß",
-  A = "Ä", O = "Ö", U = "Ü",
-  [";"] = ";;", -- escape sequence
-}
-for key, char in pairs(umlaut_mappings) do
-  vim.keymap.set("i", ";;" .. key, char, { noremap = true, silent = true })
-end
+  local umlaut_mappings = {
+    a = "ä", o = "ö", u = "ü", s = "ß",
+    A = "Ä", O = "Ö", U = "Ü",
+    [";"] = ";;", -- escape sequence
+  }
+  for key, char in pairs(umlaut_mappings) do
+    vim.keymap.set("i", ";;" .. key, char, { noremap = true, silent = true })
+  end
 
   -- window splitting
   vim.opt.splitright = true
@@ -32,4 +35,3 @@ end
 
   vim.opt.signcolumn = 'yes'
 
-    
