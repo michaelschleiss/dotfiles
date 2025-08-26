@@ -216,20 +216,24 @@ automatically-unhide-macos-hidden-apps = false
 
 [[on-window-detected]]
     if.app-id = 'com.apple.Safari'
-    run = 'move-node-to-workspace 1' # mnemonics T - Terminal
+    run = 'move-node-to-workspace 1' 
 
 [[on-window-detected]]
     if.app-id = 'dev.foxglove.studio'
-    run = 'move-node-to-workspace F' # mnemonics T - Terminal
+    run = 'move-node-to-workspace F'
 
 [[on-window-detected]]
     if.app-id = 'com.tinyspeck.slackmacgap'
-    run = 'move-node-to-workspace 5' # mnemonics T - Terminal
+    run = 'move-node-to-workspace 5' 
 
 [[on-window-detected]]
     if.app-id = 'im.riot.app'
-    run = 'move-node-to-workspace 5' # mnemonics T - Terminal
+    run = 'move-node-to-workspace 5' 
 
 [[on-window-detected]]
     if.app-id = 'com.microsoft.Outlook'
-    run = 'move-node-to-workspace 5' # mnemonics T - Terminal
+    run = 'move-node-to-workspace 5' 
+
+[[on-window-detected]]
+    if.app-id="com.mitchellh.ghostty"
+    run= ["layout tiling", "move-node-to-workspace 2"]
