@@ -11,7 +11,7 @@ return {
 		lazy = false,
 		opts = {
 			auto_install = true,
-			ensure_installed = { "lua_ls", "pyright", "clangd" },
+			ensure_installed = { "lua_ls", "pyright", "clangd"},
 		},
 	},
 	{
@@ -47,8 +47,8 @@ return {
 				},
 			})
 			lspconfig.ruff.setup({
-        capabilities=capabilities
-      })
+			     capabilities=capabilities
+			   })
 
       lspconfig.clangd.setup({
         cmd = {
