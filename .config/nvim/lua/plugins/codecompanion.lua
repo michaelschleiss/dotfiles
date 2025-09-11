@@ -11,6 +11,17 @@ return {
         -- Set debug logging
         log_level = "DEBUG",
       },
+       adapters = {
+        acp = {
+          claude_code = function()
+            return require("codecompanion.adapters").extend("claude_code", {
+              env = {
+                CLAUDE_CODE_OAUTH_TOKEN = "REDACTED",
+              },
+            })
+          end,
+        },
+      },
       strategies = {
         chat = {
           adapter = "anthropic",
