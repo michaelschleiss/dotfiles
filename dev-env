@@ -50,7 +50,8 @@ copy_file() {
   execute cp $from $to/$name
 }
 
-copy_dir .config  ${XDG_CONFIG_HOME:-$HOME/.config} 
-copy_dir .local  ${XDG_HOME:-$HOME/.local} 
+copy_dir .config  ${XDG_CONFIG_HOME:-$HOME/.config}
+copy_dir .local  ${XDG_HOME:-$HOME/.local}
 copy_file env/.zsh_profile $HOME
+copy_file env/.bash_profile $HOME
 copy_file env/.fdignore $HOME

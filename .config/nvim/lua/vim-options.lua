@@ -1,3 +1,6 @@
+  -- Clipboard (sync with system clipboard via pbcopy/pbpaste)
+  vim.opt.clipboard = "unnamedplus"
+
   -- Line numbering and scrolling
   vim.opt.number = true        	-- line numbers
   vim.opt.relativenumber = true	-- relative numbering
@@ -34,4 +37,12 @@
   vim.opt.splitbelow = true
 
   vim.opt.signcolumn = 'yes'
+
+  -- Diagnostics display
+  vim.diagnostic.config({
+    virtual_text = true,
+    signs = true,
+    underline = true,
+    update_in_insert = false,
+  })
 
