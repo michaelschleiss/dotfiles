@@ -9,10 +9,12 @@ return {
 	{
 		"williamboman/mason-lspconfig.nvim",
 		lazy = false,
-		opts = {
-			auto_install = true,
-			ensure_installed = { "lua_ls", "pyright", "clangd"},
-		},
+		dependencies = { "williamboman/mason.nvim", "neovim/nvim-lspconfig" },
+		config = function()
+			require("mason-lspconfig").setup({
+				ensure_installed = { "lua_ls", "pyright", "ruff", "clangd", "taplo", "texlab", "ltex" },
+			})
+		end,
 	},
 	{
 		"neovim/nvim-lspconfig",
@@ -20,55 +22,161 @@ return {
 		config = function()
 			local cmp_nvim_lsp = require("cmp_nvim_lsp")
 			local capabilities = vim.tbl_deep_extend(
-			  "force",
-			  {},
-			  vim.lsp.protocol.make_client_capabilities(),
-			  cmp_nvim_lsp.default_capabilities()
+				"force",
+				{},
+				vim.lsp.protocol.make_client_capabilities(),
+				cmp_nvim_lsp.default_capabilities()
 			)
 
-			local lspconfig = require("lspconfig")
-
-			lspconfig.lua_ls.setup({
-				capabilities = capabilities
-			})
-			require("lspconfig").pyright.setup({
-        capabilities=capabilities,
+			-- Configure LSP servers using nvim 0.11 native API
+			vim.lsp.config("texlab", {
+				cmd = { "texlab" },
+				filetypes = { "tex", "plaintex", "bib" },
+				root_markers = { ".latexmkrc", ".texlabroot", "Tectonic.toml", ".git" },
+				capabilities = capabilities,
 				settings = {
-					pyright = {
-						-- Using Ruff's import organizer
-						disableOrganizeImports = true,
-					},
-					python = {
-						analysis = {
-							-- Ignore all files for analysis to exclusively use Ruff for linting
-							ignore = { "*" },
+					texlab = {
+						build = {
+							executable = "latexmk",
+							args = { "-pdf", "-interaction=nonstopmode", "-synctex=1", "-outdir=build", "%f" },
+							onSave = false,
+							auxDirectory = "build",
+							logDirectory = "build",
+							pdfDirectory = "build",
+							useFileList = true,
+						},
+						chktex = {
+							onOpenAndSave = true,
+							onEdit = false,
 						},
 					},
 				},
 			})
-			lspconfig.ruff.setup({
-			     capabilities=capabilities
-			   })
+			vim.lsp.enable("texlab")
 
-      lspconfig.clangd.setup({
-        cmd = {
-          "clangd",
-          "--background-index",
-          "--suggest-missing-includes",
-          "--clang-tidy",
-          "--header-insertion=iwyu",
-        },
-      })
+			-- ltex with native vim.lsp.config API
+			vim.lsp.config("ltex", {
+				cmd = { "ltex-ls" },
+				filetypes = { "tex", "plaintex", "bib", "markdown", "text" },
+				root_markers = { ".git" },
+				capabilities = capabilities,
+				settings = {
+					ltex = {
+						language = "en-US",
+						enabled = { "latex", "tex", "bib", "markdown", "text" },
+						additionalRules = {
+							enablePickyRules = true,
+							motherTongue = "de-DE", -- Detect false friends for German speakers
+						},
+						completionEnabled = true,
+						diagnosticSeverity = "information",
+						sentenceCacheSize = 5000,
+					},
+				},
+			})
+			vim.lsp.enable("ltex")
 
-      -- Keymaps
+			-- Setup ltex_extra via LspAttach autocommand
+			vim.api.nvim_create_autocmd("LspAttach", {
+				callback = function(args)
+					local client = vim.lsp.get_client_by_id(args.data.client_id)
+					if client and client.name == "ltex" then
+						require("ltex_extra").setup({
+							load_langs = { "en-US" },
+							path = vim.fn.expand("~") .. "/.local/share/ltex",
+						})
+					end
+				end,
+			})
+
+			vim.lsp.config("pyright", {
+				cmd = { "pyright-langserver", "--stdio" },
+				filetypes = { "python" },
+				root_markers = { "pyrightconfig.json", "pyproject.toml", "setup.py", ".git" },
+				capabilities = capabilities,
+				settings = {
+					pyright = { disableOrganizeImports = true },
+					python = {
+						analysis = {
+							typeCheckingMode = "basic",
+							diagnosticMode = "workspace",
+						},
+					},
+				},
+			})
+			vim.lsp.enable("pyright")
+
+			vim.lsp.config("ruff", {
+				cmd = { "ruff", "server" },
+				filetypes = { "python" },
+				root_markers = { "pyproject.toml", "ruff.toml", ".git" },
+				capabilities = capabilities,
+			})
+			vim.lsp.enable("ruff")
+
+			vim.lsp.config("lua_ls", {
+				cmd = { "lua-language-server" },
+				filetypes = { "lua" },
+				root_markers = { ".luarc.json", ".stylua.toml", ".git" },
+				capabilities = capabilities,
+			})
+			vim.lsp.enable("lua_ls")
+
+			vim.lsp.config("clangd", {
+				cmd = {
+					"clangd",
+					"--background-index",
+					"--suggest-missing-includes",
+					"--clang-tidy",
+					"--header-insertion=iwyu",
+				},
+				filetypes = { "c", "cpp", "objc", "objcpp" },
+				root_markers = { "compile_commands.json", ".git" },
+				capabilities = capabilities,
+			})
+			vim.lsp.enable("clangd")
+
+			vim.lsp.config("taplo", {
+				cmd = { "taplo", "lsp", "stdio" },
+				filetypes = { "toml" },
+				root_markers = { ".taplo.toml", ".git" },
+				capabilities = capabilities,
+				settings = {
+					taplo = {
+						formatting = { columnWidth = 100, indentString = "    " },
+					},
+				},
+				})
+				vim.lsp.enable("taplo")
+
+				-- Filter out noisy texlab reference diagnostics without affecting other LSPs
+				local orig_publish_diagnostics = vim.lsp.handlers["textDocument/publishDiagnostics"]
+				vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
+					local client = ctx and ctx.client_id and vim.lsp.get_client_by_id(ctx.client_id) or nil
+					if client and client.name == "texlab" and result and result.diagnostics then
+						result.diagnostics = vim.tbl_filter(function(d)
+							return d.message ~= "Undefined reference" and d.message ~= "Unused label"
+						end, result.diagnostics)
+					end
+					orig_publish_diagnostics(err, result, ctx, config)
+				end
+
+			-- Keymaps
 			vim.keymap.set("n", "gD", vim.lsp.buf.declaration, {})
 			vim.keymap.set("n", "gd", vim.lsp.buf.definition, {})
 			vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
 			vim.keymap.set("n", "gi", vim.lsp.buf.implementation, {})
 			vim.keymap.set("n", "gr", vim.lsp.buf.references, {})
 			vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, {})
-      vim.keymap.set("n", "<leader>gf", vim.lsp.buf.format, {})
-      vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, {})
+			vim.keymap.set("n", "<space>rn", vim.lsp.buf.rename, {})
+			vim.keymap.set("n", "<leader>q", function()
+				vim.diagnostic.setqflist()
+				vim.cmd("copen")
+			end, { desc = "Diagnostics to quickfix" })
+			vim.keymap.set("n", "<leader>Q", ":cexpr system('pyright') | copen<cr>", { desc = "Pyright check all files" })
+			vim.keymap.set("n", "gl", vim.diagnostic.open_float, { desc = "Show diagnostic" })
+			vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+			vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Prev diagnostic" })
 		end,
 	},
 }
