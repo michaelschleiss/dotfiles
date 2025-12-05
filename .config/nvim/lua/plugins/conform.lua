@@ -5,13 +5,18 @@ return {
 		require("conform").setup({
 			formatters_by_ft = {
 				lua = { "stylua" },
-				-- Python formatting via Ruff (ruff format)
-				python = { "ruff_format" },
 				tex = { "latexindent" },
 				bib = { "bibtex-tidy" },
 			},
+			formatters = {
+				latexindent = {
+					command = "latexindent",
+					args = { "-m", "-l=" .. vim.fn.expand("~/projects/doktorarbeit/.latexindent.yaml"), "-" },
+					stdin = true,
+				},
+			},
 			format_on_save = {
-				timeout_ms = 1000,
+				timeout_ms = 5000,
 				lsp_fallback = true,
 			},
 		})
