@@ -29,6 +29,7 @@ return {
 			)
 
 			-- Configure LSP servers using nvim 0.11 native API
+			-- Note: texlab Blob completions filtered in completion.lua entry_filter
 			vim.lsp.config("texlab", {
 				cmd = { "texlab" },
 				filetypes = { "tex", "plaintex", "bib" },
@@ -63,7 +64,7 @@ return {
 				settings = {
 					ltex = {
 						language = "en-US",
-						enabled = { "latex", "tex", "bib", "markdown", "text" },
+						enabled = { "latex", "bibtex", "markdown", "text" },
 						additionalRules = {
 							enablePickyRules = true,
 							motherTongue = "de-DE", -- Detect false friends for German speakers
@@ -82,7 +83,7 @@ return {
 					local client = vim.lsp.get_client_by_id(args.data.client_id)
 					if client and client.name == "ltex" then
 						require("ltex_extra").setup({
-							load_langs = { "en-US" },
+							load_langs = { "en-US", "de-DE" },
 							path = vim.fn.expand("~") .. "/.local/share/ltex",
 						})
 					end
@@ -146,25 +147,43 @@ return {
 						formatting = { columnWidth = 100, indentString = "    " },
 					},
 				},
-				})
-				vim.lsp.enable("taplo")
+			})
+			vim.lsp.enable("taplo")
 
-				-- Filter out noisy texlab reference diagnostics without affecting other LSPs
-				local orig_publish_diagnostics = vim.lsp.handlers["textDocument/publishDiagnostics"]
+			-- Filter out noisy texlab diagnostics, but leave other LSPs (like ltex) untouched.
+			do
+				local orig_publish = vim.lsp.handlers["textDocument/publishDiagnostics"]
+
 				vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
-					local client = ctx and ctx.client_id and vim.lsp.get_client_by_id(ctx.client_id) or nil
-					if client and client.name == "texlab" and result and result.diagnostics then
-						result.diagnostics = vim.tbl_filter(function(d)
-							return d.message ~= "Undefined reference" and d.message ~= "Unused label"
-						end, result.diagnostics)
+					if result and result.diagnostics then
+						local client = vim.lsp.get_client_by_id(ctx.client_id)
+						if client and client.name == "texlab" then
+							result.diagnostics = vim.tbl_filter(function(d)
+								return d.message ~= "Undefined reference" and d.message ~= "Unused label"
+							end, result.diagnostics)
+						end
 					end
-					orig_publish_diagnostics(err, result, ctx, config)
+					return orig_publish(err, result, ctx, config)
 				end
+			end
 
 			-- Keymaps
 			vim.keymap.set("n", "gD", vim.lsp.buf.declaration, {})
 			vim.keymap.set("n", "gd", vim.lsp.buf.definition, {})
-			vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
+			vim.keymap.set("n", "K", function()
+				local clients = vim.lsp.get_clients({ bufnr = 0 })
+				if #clients == 0 then return end
+				local encoding = clients[1].offset_encoding or "utf-16"
+				vim.lsp.buf_request(0, "textDocument/hover", vim.lsp.util.make_position_params(0, encoding), function(err, result, ctx, config)
+					if not result or not result.contents then return end
+					if type(result.contents) ~= "string" and type(result.contents) ~= "table" then return end
+					if type(result.contents) == "table" then
+						local c = result.contents
+						if not c.kind and not c.value and not c[1] and not c.language then return end
+					end
+					vim.lsp.handlers.hover(err, result, ctx, config)
+				end)
+			end, { desc = "Safe hover" })
 			vim.keymap.set("n", "gi", vim.lsp.buf.implementation, {})
 			vim.keymap.set("n", "gr", vim.lsp.buf.references, {})
 			vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, {})

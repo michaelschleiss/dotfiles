@@ -46,3 +46,6 @@
     update_in_insert = false,
   })
 
+  -- Enable project-local config (.nvim.lua)
+  vim.opt.exrc = true
+
