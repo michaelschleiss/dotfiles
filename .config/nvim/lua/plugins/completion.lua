@@ -4,7 +4,6 @@ return {
       dependencies = {
         "hrsh7th/cmp-buffer",
         "hrsh7th/cmp-path",
-        "hrsh7th/cmp-omni",
         "kdheepak/cmp-latex-symbols",
   },
   },
@@ -32,21 +31,67 @@ return {
           completion = cmp.config.window.bordered(),
           documentation = cmp.config.window.bordered(),
         },
+        formatting = {
+          format = function(entry, vim_item)
+            -- Show source name in brackets
+            vim_item.menu = ({
+              nvim_lsp = "[LSP]",
+              vimtex = "[Cite]",
+              luasnip = "[Snip]",
+              buffer = "[Buf]",
+              path = "[Path]",
+              latex_symbols = "[LaTeX]",
+            })[entry.source.name] or "[" .. entry.source.name .. "]"
+            return vim_item
+          end,
+        },
         mapping = cmp.mapping.preset.insert({
           -- Keymaps
           ["<C-b>"] = cmp.mapping.scroll_docs(-4),
           ["<C-f>"] = cmp.mapping.scroll_docs(4),
           ["<C-Space>"] = cmp.mapping.complete(),
           ["<C-e>"] = cmp.mapping.abort(),
-          ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+          ["<CR>"] = cmp.mapping.confirm({ select = true }),
+          -- Tab: select next item or jump to next snippet placeholder
+          ["<Tab>"] = cmp.mapping(function(fallback)
+            local luasnip = require("luasnip")
+            if cmp.visible() then
+              cmp.select_next_item()
+            elseif luasnip.locally_jumpable(1) then
+              luasnip.jump(1)
+            else
+              fallback()
+            end
+          end, { "i", "s" }),
+          -- Shift-Tab: select prev item or jump to prev snippet placeholder
+          ["<S-Tab>"] = cmp.mapping(function(fallback)
+            local luasnip = require("luasnip")
+            if cmp.visible() then
+              cmp.select_prev_item()
+            elseif luasnip.locally_jumpable(-1) then
+              luasnip.jump(-1)
+            else
+              fallback()
+            end
+          end, { "i", "s" }),
         }),
         sources = cmp.config.sources({
           { name = "nvim_lsp" },
-          { name = 'luasnip' }, -- For luasnip users.
+          { name = "luasnip" }, -- For luasnip users.
           { name = "buffer" },
-          { name = "omni" }, -- For vimtex
-          { name = "latex_symbols" }, -- For vimtex
-          { name = "path" }, -- For vimtex
+          { name = "path" },
+        }),
+      })
+
+      -- LaTeX-specific completion sources
+      cmp.setup.filetype({ "tex", "plaintex", "bib" }, {
+        sources = cmp.config.sources({
+          { name = "nvim_lsp" },
+          { name = "luasnip" },
+        }, {
+          { name = "buffer" },
+          { name = "latex_symbols" },
+          { name = "path" },
         }),
       })
     end,
