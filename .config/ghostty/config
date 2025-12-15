@@ -4,6 +4,6 @@ font-size = 16
 background-opacity = 1.0
 
 # Quick terminal (dropdown)
-keybind = global:ctrl+grave=toggle_quick_terminal
+keybind = global:ctrl+`=toggle_quick_terminal
 quick-terminal-position = top
 quick-terminal-animation-duration = 0.1
