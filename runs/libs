@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
+set -euo pipefail
 # general libs
+
+# --- helpers ---
 
 # install a package via brew (mac) or apt (linux)
 # usage: install <name> [linux-name-if-different]
@@ -10,16 +13,8 @@ install() {
   esac
 }
 
-libs=(
-  "ripgrep"
-  "fd fd-find"
-)
+# --- main ---
 
-for lib in "${libs[@]}"; do
-  install $lib
-done
-
-# fzf doesn't have a package, needs manual install
-git clone git@github.com:junegunn/fzf.git $HOME/fzf
-$HOME/fzf/install
-rm -rf $HOME/fzf
+install ripgrep
+install fd fd-find
+install fzf
