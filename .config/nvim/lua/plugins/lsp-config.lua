@@ -29,66 +29,66 @@ return {
 			)
 
 			-- Configure LSP servers using nvim 0.11 native API
-			-- Note: texlab Blob completions filtered in completion.lua entry_filter
-			vim.lsp.config("texlab", {
-				cmd = { "texlab" },
-				filetypes = { "tex", "plaintex", "bib" },
-				root_markers = { ".latexmkrc", ".texlabroot", "Tectonic.toml", ".git" },
-				capabilities = capabilities,
-				settings = {
-					texlab = {
-						build = {
-							executable = "latexmk",
-							args = { "-pdf", "-interaction=nonstopmode", "-synctex=1", "-outdir=build", "%f" },
-							onSave = false,
-							auxDirectory = "build",
-							logDirectory = "build",
-							pdfDirectory = "build",
-							useFileList = true,
-						},
-						chktex = {
-							onOpenAndSave = true,
-							onEdit = false,
-						},
-					},
-				},
-			})
-			vim.lsp.enable("texlab")
+			-- DISABLED: texlab conflicts with zotcite citation completions
+			-- vim.lsp.config("texlab", {
+			-- 	cmd = { "texlab" },
+			-- 	filetypes = { "tex", "plaintex", "bib" },
+			-- 	root_markers = { ".latexmkrc", ".texlabroot", "Tectonic.toml", ".git" },
+			-- 	capabilities = capabilities,
+			-- 	settings = {
+			-- 		texlab = {
+			-- 			build = {
+			-- 				executable = "latexmk",
+			-- 				args = { "-pdf", "-interaction=nonstopmode", "-synctex=1", "-outdir=build", "%f" },
+			-- 				onSave = false,
+			-- 				auxDirectory = "build",
+			-- 				logDirectory = "build",
+			-- 				pdfDirectory = "build",
+			-- 				useFileList = true,
+			-- 			},
+			-- 			chktex = {
+			-- 				onOpenAndSave = true,
+			-- 				onEdit = false,
+			-- 			},
+			-- 		},
+			-- 	},
+			-- })
+			-- vim.lsp.enable("texlab")
 
-			-- ltex with native vim.lsp.config API
-			vim.lsp.config("ltex", {
-				cmd = { "ltex-ls" },
-				filetypes = { "tex", "plaintex", "bib", "markdown", "text" },
-				root_markers = { ".git" },
-				capabilities = capabilities,
-				settings = {
-					ltex = {
-						language = "en-US",
-						enabled = { "latex", "bibtex", "markdown", "text" },
-						additionalRules = {
-							enablePickyRules = true,
-							motherTongue = "de-DE", -- Detect false friends for German speakers
-						},
-						completionEnabled = true,
-						diagnosticSeverity = "information",
-						sentenceCacheSize = 5000,
-					},
-				},
-			})
-			vim.lsp.enable("ltex")
+			-- DISABLED: ltex - testing if it blocks zotcite
+			-- vim.lsp.config("ltex", {
+			-- 	cmd = { "ltex-ls" },
+			-- 	filetypes = { "tex", "plaintex", "bib", "markdown", "text" },
+			-- 	root_markers = { ".git" },
+			-- 	capabilities = capabilities,
+			-- 	settings = {
+			-- 		ltex = {
+			-- 			language = "en-US",
+			-- 			enabled = { "latex", "bibtex", "markdown", "text" },
+			-- 			additionalRules = {
+			-- 				enablePickyRules = true,
+			-- 				motherTongue = "de-DE", -- Detect false friends for German speakers
+			-- 			},
+			-- 			completionEnabled = true,
+			-- 			diagnosticSeverity = "information",
+			-- 			sentenceCacheSize = 5000,
+			-- 		},
+			-- 	},
+			-- })
+			-- vim.lsp.enable("ltex")
 
 			-- Setup ltex_extra via LspAttach autocommand
-			vim.api.nvim_create_autocmd("LspAttach", {
-				callback = function(args)
-					local client = vim.lsp.get_client_by_id(args.data.client_id)
-					if client and client.name == "ltex" then
-						require("ltex_extra").setup({
-							load_langs = { "en-US", "de-DE" },
-							path = vim.fn.expand("~") .. "/.local/share/ltex",
-						})
-					end
-				end,
-			})
+			-- vim.api.nvim_create_autocmd("LspAttach", {
+			-- 	callback = function(args)
+			-- 		local client = vim.lsp.get_client_by_id(args.data.client_id)
+			-- 		if client and client.name == "ltex" then
+			-- 			require("ltex_extra").setup({
+			-- 				load_langs = { "en-US", "de-DE" },
+			-- 				path = vim.fn.expand("~") .. "/.local/share/ltex",
+			-- 			})
+			-- 		end
+			-- 	end,
+			-- })
 
 			vim.lsp.config("pyright", {
 				cmd = { "pyright-langserver", "--stdio" },

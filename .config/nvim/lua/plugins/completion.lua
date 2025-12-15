@@ -18,6 +18,13 @@ return {
     "hrsh7th/nvim-cmp",
     config = function()
       local cmp = require("cmp")
+      -- nvim-cmp can blow up if a source returns a Blob/number for fields like
+      -- `abbr` or `menu`; coerce anything non-string to a printable string.
+      local function to_s(val)
+        if type(val) == "string" then return val end
+        if val == nil then return "" end
+        return tostring(val)
+      end
       require("luasnip.loaders.from_vscode").lazy_load()
 
       cmp.setup({
@@ -42,6 +49,9 @@ return {
               path = "[Path]",
               latex_symbols = "[LaTeX]",
             })[entry.source.name] or "[" .. entry.source.name .. "]"
+            vim_item.abbr = to_s(vim_item.abbr)
+            vim_item.menu = to_s(vim_item.menu)
+            vim_item.kind = to_s(vim_item.kind)
             return vim_item
           end,
         },
@@ -84,15 +94,31 @@ return {
       })
 
       -- LaTeX-specific completion sources
+      -- Note: zotcite provides citations via its own LSP "zotero_ls"
       cmp.setup.filetype({ "tex", "plaintex", "bib" }, {
         sources = cmp.config.sources({
-          { name = "nvim_lsp" },
+          { name = "nvim_lsp", keyword_length = 0 },
           { name = "luasnip" },
         }, {
           { name = "buffer" },
           { name = "latex_symbols" },
           { name = "path" },
         }),
+      })
+
+      -- Auto-trigger completion after { in tex files (for \cite{, \ref{, etc.)
+      vim.api.nvim_create_autocmd("InsertCharPre", {
+        pattern = { "*.tex", "*.bib" },
+        callback = function()
+          if vim.v.char == "{" then
+            -- Delay to let cursor position update and zotcite's compl_region check
+            vim.defer_fn(function()
+              -- Force cursor move event to update zotcite's compl_region
+              vim.cmd("doautocmd CursorMovedI")
+              cmp.complete()
+            end, 50)
+          end
+        end,
       })
     end,
   }

@@ -1,6 +1,10 @@
 return {
 	"jalvesaq/zotcite",
 	branch = "pynvim",  -- Required for Neovim < 0.11.5
+	pin = true,  -- IMPORTANT: Local patches in lsp.lua - don't update without reapplying
+	-- Patches applied to ~/.local/share/nvim/lazy/zotcite/lua/zotcite/lsp.lua:
+	--   1. Line ~318: Added 'return' after set_compl_region_rnw() for tex files
+	--   2. Line ~219: Added triggerCharacters = { "{" } for auto-completion
 	ft = { "markdown", "pandoc", "rmd", "quarto", "vimwiki", "tex", "rnoweb" },
 	dependencies = {
 		"nvim-treesitter/nvim-treesitter",
@@ -19,6 +23,16 @@ return {
 		if opts then
 			for k, v in pairs(opts) do cfg[k] = v end
 		end
+
+		-- Workaround: zotcite's VimEnter autocmd may not fire reliably
+		-- Initialize zotero data immediately since we're already in a tex buffer
+		vim.schedule(function()
+			local zotero = require("zotcite.zotero")
+			if zotero.info()["n refs"] == 0 then
+				zotero.init()
+				require("zotcite.lsp").start()
+			end
+		end)
 
 		-- :ZbibAll - Scan all thesis .tex files and update zotcite.bib
 		vim.api.nvim_create_user_command("ZbibAll", function()
