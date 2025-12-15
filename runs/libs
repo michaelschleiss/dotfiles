@@ -1,5 +1,25 @@
-# some general libs
+#!/usr/bin/env bash
+# general libs
 
+# install a package via brew (mac) or apt (linux)
+# usage: install <name> [linux-name-if-different]
+install() {
+  case "$(uname -s)" in
+    Darwin) brew install "$1" ;;
+    Linux)  sudo apt install -y "${2:-$1}" ;;
+  esac
+}
+
+libs=(
+  "ripgrep"
+  "fd fd-find"
+)
+
+for lib in "${libs[@]}"; do
+  install $lib
+done
+
+# fzf doesn't have a package, needs manual install
 git clone git@github.com:junegunn/fzf.git $HOME/fzf
 $HOME/fzf/install
 rm -rf $HOME/fzf
