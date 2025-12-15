@@ -1,0 +1,40 @@
+diff --git a/lua/zotcite/zotero.lua b/lua/zotcite/zotero.lua
+index 1f4569c..053516f 100644
+--- a/lua/zotcite/zotero.lua
++++ b/lua/zotcite/zotero.lua
+@@ -263,7 +263,8 @@ local function copy_zotero_data()
+ 
+     -- Make a copy of zotero.sqlite to avoid locks
+     if ztime > zcopy_time then vim.uv.fs_copyfile(zf, zcopy) end
+-    local kt = require("zotcite.config").get_key_type(vim.api.nvim_get_current_buf())
++    -- Use per-buffer key_type, fall back to config default during init
++    local kt = require("zotcite.config").get_key_type(vim.api.nvim_get_current_buf()) or config.key_type
+     if kt ~= "better-bibtex" then return end
+ 
+     local bbt_f = zf:gsub("zotero%.sqlite$", "better-bibtex.sqlite")
+@@ -483,7 +484,8 @@ local function get_sequence_string(n)
+ end
+ 
+ local function add_citekeys()
+-    local kt = require("zotcite.config").get_key_type(vim.api.nvim_get_current_buf())
++    -- Use per-buffer key_type, fall back to config default during init
++    local kt = require("zotcite.config").get_key_type(vim.api.nvim_get_current_buf()) or config.key_type
+     if kt == "better-bibtex" then
+         add_bbt_keys()
+     else
+@@ -623,6 +625,7 @@ local function get_bib_ref(item, ktype)
+     for _, aa in pairs({
+         "author",
+         "editor",
++        "seriesEditor",
+         "contributor",
+         "translator",
+         "container-author",
+@@ -709,6 +712,7 @@ end
+ ---@param ktype string Type of citation key
+ ---@param verbose boolean Whether to print debugging information or not
+ function M.update_bib(zkeys, bibf, ktype, verbose)
++    copy_zotero_data() -- Refresh cache if Zotero database changed
+     local bib = {}
+ 
+     local f = io.open(bibf, "r")

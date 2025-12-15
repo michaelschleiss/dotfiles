@@ -1,0 +1,18 @@
+diff --git a/lua/zotcite/bib.lua b/lua/zotcite/bib.lua
+index e3c98e4..44ad860 100644
+--- a/lua/zotcite/bib.lua
++++ b/lua/zotcite/bib.lua
+@@ -117,6 +117,13 @@ local get_tex_citations = function(kz)
+ end
+ 
+ M.update = function()
++    -- For LaTeX, bib management is handled via the custom :ZbibAll command
++    -- in the user's config. Avoid per-buffer updates for TeX here, as they
++    -- only see a single file and can lead to incomplete zotcite.bib.
++    if vim.o.filetype == "tex" then
++        return
++    end
++
+     local kt = require("zotcite.config").get_key_type(vim.api.nvim_get_current_buf())
+     local kz = kt == "zotero"
+     local ckeys

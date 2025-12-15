@@ -1,0 +1,199 @@
+diff --git a/lua/zotcite/lsp.lua b/lua/zotcite/lsp.lua
+index 64680cc..5d9117f 100644
+--- a/lua/zotcite/lsp.lua
++++ b/lua/zotcite/lsp.lua
+@@ -1,7 +1,9 @@
+ local zwarn = require("zotcite").zwarn
+ local zotero = require("zotcite.zotero")
+ 
+-local last_line = 0
++-- Buffer-local state: table indexed by buffer number
++local buf_state = {}
++
+ local z_ls = {
+     name = "zotero_ls",
+     client_id = nil,
+@@ -9,7 +11,17 @@ local z_ls = {
+     stopped = true,
+ }
+ 
+-local compl_region = true
++-- Get or initialize buffer state
++local function get_buf_state(bufnr)
++    bufnr = bufnr or vim.api.nvim_get_current_buf()
++    if not buf_state[bufnr] then
++        buf_state[bufnr] = {
++            last_line = 0,
++            compl_region = true,
++        }
++    end
++    return buf_state[bufnr]
++end
+ 
+ --- Resolve selected menu item
+ ---@param key string
+@@ -40,7 +52,8 @@ end
+ ---@param lnum integer Line number
+ ---@param char integer Cursor column
+ local complete = function(callback, lnum, char)
+-    if not compl_region then
++    local state = get_buf_state()
++    if not state.compl_region then
+         callback(nil, { isIncomplete = false, items = {} })
+         return
+     end
+@@ -55,22 +68,28 @@ local complete = function(callback, lnum, char)
+     local word
+     if vim.bo.filetype == "rnoweb" or vim.bo.filetype == "tex" then
+         word = subline:match(".*{.-(%S+)$")
++        -- Inside \cite{...} region but no characters typed yet:
++        -- treat this as an empty prefix so we can still offer
++        -- Zotcite completions right after "\cite{".
++        if not word then word = "" end
+     else
+         word = subline:match(".*@(%S+)$")
+-    end
+-    if not word then
+-        callback(nil, { isIncomplete = false, items = {} })
+-        return
++        if not word then
++            callback(nil, { isIncomplete = false, items = {} })
++            return
++        end
+     end
+ 
+     local compl_items = {}
+     local bnm = vim.api.nvim_buf_get_name(0)
+     if vim.fn.has("win32") == 1 then bnm = string.gsub(tostring(bnm), "\\", "/") end
+     local itms = zotero.get_match(word, bnm)
++    -- Range should span the entire word being completed, not just 1 char
++    local word_start = char - #word
+     local text_edit_range = {
+         start = {
+             line = lnum,
+-            character = char - 1,
++            character = word_start,
+         },
+         ["end"] = {
+             line = lnum,
+@@ -85,11 +104,13 @@ local complete = function(callback, lnum, char)
+             end
+             local kt =
+                 require("zotcite.config").get_key_type(vim.api.nvim_get_current_buf())
++            local citekey = kt == "zotero" and v.zotkey or v.citekey
+             table.insert(compl_items, {
+                 label = txt,
++                filterText = citekey,
+                 kind = vim.lsp.protocol.CompletionItemKind.Variable,
+                 textEdit = {
+-                    newText = kt == "zotero" and v.zotkey or v.citekey,
++                    newText = citekey,
+                     range = text_edit_range,
+                 },
+             })
+@@ -180,7 +201,8 @@ local function lsp_request(method, params, callback, _)
+         callback(nil, params)
+         vim.schedule(require("zotcite.hl").citations)
+     elseif method == "textDocument/hover" then
+-        if not compl_region then
++        local state = get_buf_state()
++        if not state.compl_region then
+             callback(nil, { result = nil })
+             return
+         end
+@@ -194,8 +216,7 @@ local function lsp_request(method, params, callback, _)
+                 },
+                 hoverProvider = true,
+                 completionProvider = {
+-                    -- would work only if we could reset the completion
+-                    -- triggerCharacters = { "@" },
++                    triggerCharacters = { "{" },
+                     resolveProvider = true,
+                 },
+             },
+@@ -242,18 +263,19 @@ end
+ --- region where the completion of Zotero's keys is meaningful for Rnoweb or
+ --- LaTeX documents
+ local function set_compl_region_rnw()
++    local state = get_buf_state()
+     local curpos = vim.api.nvim_win_get_cursor(0)
+     if not curpos then
+-        compl_region = false
++        state.compl_region = false
+         return
+     end
+     local line = vim.api.nvim_buf_get_lines(0, curpos[1] - 1, curpos[1], true)[1]
+     local subline = line:sub(1, curpos[2])
+     local pre, pos = subline:match(".*(\\cite%S*{)(.*)")
+     if pre and not pos:find("}") then
+-        compl_region = true
++        state.compl_region = true
+     else
+-        compl_region = false
++        state.compl_region = false
+     end
+ end
+ 
+@@ -261,15 +283,16 @@ end
+ --- region where the completion of Zotero's keys is meaningful for Markdown
+ --- documents
+ local function set_compl_region_md()
++    local state = get_buf_state()
+     local lines = vim.api.nvim_buf_get_lines(vim.api.nvim_get_current_buf(), 0, -1, true)
+-    local lnum = last_line
++    local lnum = state.last_line
+ 
+     -- Check if we are within normal markdown text
+-    compl_region = true
++    state.compl_region = true
+     for i = lnum, 1, -1 do
+         if string.find(lines[i], "^```{") then
+             -- within code block
+-            compl_region = false
++            state.compl_region = false
+             break
+         else
+             if string.find(lines[i], "^```$") then
+@@ -291,12 +314,14 @@ end
+ local function on_cursor_move()
+     if vim.bo.filetype == "rnoweb" or vim.bo.filetype == "tex" then
+         set_compl_region_rnw()
++        return
+     end
++    local state = get_buf_state()
+     local curpos = vim.api.nvim_win_get_cursor(0)
+     if not curpos then return end
+     local curline = curpos[1]
+-    if curline == last_line then return end
+-    last_line = curline
++    if curline == state.last_line then return end
++    state.last_line = curline
+     set_compl_region_md()
+ end
+ 
+@@ -307,11 +332,24 @@ function M.start()
+     -- TODO: remove this when nvim 0.12 is released
+     if not vim.lsp.config then return end
+ 
++    local bufnr = vim.api.nvim_get_current_buf()
++
++    -- Initialize buffer state
++    get_buf_state(bufnr)
++
+     vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+-        buffer = vim.api.nvim_get_current_buf(),
++        buffer = bufnr,
+         callback = on_cursor_move,
+     })
+ 
++    -- Clean up buffer state when buffer is deleted
++    vim.api.nvim_create_autocmd("BufDelete", {
++        buffer = bufnr,
++        callback = function()
++            buf_state[bufnr] = nil
++        end,
++    })
++
+     local config = require("zotcite.config").get_config()
+     vim.lsp.config(z_ls.name, { cmd = lsp_start, filetypes = config.filetypes })
+     if z_ls.client_id then
