@@ -21,6 +21,5 @@ zstyle ':completion:*' matcher-list \
 autoload -Uz compinit
 compinit
 
-# Codex completion (requires codex CLI installed)
+# Codex completion (installed via `./run ai`)
 eval "$(codex completion zsh)"
-
