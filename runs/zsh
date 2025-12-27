@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 ZSHRC="$HOME/.zshrc"
 SOURCE_LINE="[[ -f ~/.zsh_profile ]] && source ~/.zsh_profile"
