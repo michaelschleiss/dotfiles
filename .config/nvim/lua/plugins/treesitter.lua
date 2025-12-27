@@ -7,7 +7,7 @@ return {
       auto_install = true,
       highlight = {
         enable = true,
-        disable = { "latex" },  -- Let VimTeX handle LaTeX highlighting
+        disable = { "latex" },
       },
       indent = {
         enable = true,
