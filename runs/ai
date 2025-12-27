@@ -1,0 +1,175 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+log() {
+  echo "[ai] $*"
+}
+
+have() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+os_name="$(uname -s)"
+arch_name="$(uname -m)"
+
+# Make user-installed tools available within this script run.
+export PATH="${HOME}/.local/bin:${PATH}"
+
+ensure_cmd() {
+  local cmd="$1"
+  local pkg="${2:-}"
+
+  if have "$cmd"; then
+    return 0
+  fi
+
+  if [[ -z "${pkg}" ]]; then
+    echo "Missing required command: ${cmd}" >&2
+    return 1
+  fi
+
+  if [[ "$os_name" == "Darwin" ]] && have brew; then
+    log "Installing ${pkg} (Homebrew)"
+    brew install "$pkg"
+    return 0
+  fi
+
+  if [[ "$os_name" == "Linux" ]] && have apt-get; then
+    log "Installing ${pkg} (apt)"
+    sudo apt-get update
+    sudo apt-get install -y "$pkg"
+    return 0
+  fi
+
+  echo "Missing required command: ${cmd} (and no supported package manager found)" >&2
+  return 1
+}
+
+install_ripgrep() {
+  if have rg; then
+    return 0
+  fi
+
+  if [[ "$os_name" == "Darwin" ]] && have brew; then
+    log "Installing ripgrep (Homebrew)"
+    brew install ripgrep
+    return 0
+  fi
+
+  if [[ "$os_name" == "Linux" ]] && have apt-get; then
+    log "Installing ripgrep (apt)"
+    sudo apt-get update
+    sudo apt-get install -y ripgrep
+    return 0
+  fi
+
+  echo "ripgrep (rg) is required for codex. Install it and re-run this script." >&2
+  return 1
+}
+
+codex_target() {
+  case "${os_name}/${arch_name}" in
+    Darwin/arm64 | Darwin/aarch64) echo "aarch64-apple-darwin" ;;
+    Darwin/x86_64 | Darwin/amd64) echo "x86_64-apple-darwin" ;;
+    Linux/x86_64 | Linux/amd64) echo "x86_64-unknown-linux-musl" ;;
+    Linux/arm64 | Linux/aarch64) echo "aarch64-unknown-linux-musl" ;;
+    *) return 1 ;;
+  esac
+}
+
+install_codex_from_github() {
+  local target
+  target="$(codex_target)" || {
+    echo "Unsupported platform for codex: ${os_name} ${arch_name}" >&2
+    return 1
+  }
+
+  ensure_cmd curl curl
+  ensure_cmd tar tar
+
+  local asset="codex-${target}.tar.gz"
+  local url="https://github.com/openai/codex/releases/latest/download/${asset}"
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+
+  cleanup() {
+    rm -rf "${tmpdir}"
+  }
+  trap cleanup EXIT
+
+  log "Downloading codex (${target})"
+  curl -fsSL "${url}" -o "${tmpdir}/${asset}"
+
+  tar -xzf "${tmpdir}/${asset}" -C "${tmpdir}"
+
+  local install_dir="${HOME}/.local/bin"
+  mkdir -p "${install_dir}"
+
+  local extracted_bin="${tmpdir}/codex-${target}"
+  if [[ ! -f "${extracted_bin}" ]]; then
+    echo "Expected ${extracted_bin} after extracting ${asset}" >&2
+    return 1
+  fi
+
+  install -m 0755 "${extracted_bin}" "${install_dir}/codex"
+  log "Installed codex to ${install_dir}/codex"
+}
+
+install_codex() {
+  if have codex; then
+    log "codex already installed: $(codex --version 2>/dev/null || echo ok)"
+    return 0
+  fi
+
+  install_ripgrep
+
+  if [[ "$os_name" == "Darwin" ]] && have brew; then
+    log "Installing codex (Homebrew cask)"
+    brew install --cask codex
+    return 0
+  fi
+
+  install_codex_from_github
+}
+
+install_claude_code() {
+  if have claude; then
+    log "claude already installed: $(claude --version 2>/dev/null | head -n 1 || echo ok)"
+    return 0
+  fi
+
+  if ! have npm; then
+    if [[ "$os_name" == "Darwin" ]] && have brew; then
+      log "Installing Node.js (Homebrew)"
+      brew install node
+    elif [[ "$os_name" == "Linux" ]] && have apt-get; then
+      log "Installing Node.js + npm (apt)"
+      sudo apt-get update
+      sudo apt-get install -y nodejs npm
+    else
+      echo "npm is required to install Claude Code. Install Node.js/npm and re-run." >&2
+      return 1
+    fi
+  fi
+
+  mkdir -p "${HOME}/.local"
+  log "Installing Claude Code (npm, user prefix: ~/.local)"
+  npm install -g --prefix "${HOME}/.local" @anthropic-ai/claude-code
+
+  if have claude; then
+    log "Installed claude: $(claude --version 2>/dev/null | head -n 1 || echo ok)"
+    return 0
+  fi
+
+  echo "Claude Code installed but 'claude' is not on PATH; ensure ~/.local/bin is in PATH." >&2
+  return 1
+}
+
+main() {
+  install_codex
+  install_claude_code
+  log "Done"
+}
+
+main "$@"
