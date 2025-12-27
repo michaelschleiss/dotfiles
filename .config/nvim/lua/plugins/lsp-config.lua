@@ -55,40 +55,23 @@ return {
 			-- })
 			-- vim.lsp.enable("texlab")
 
-			-- DISABLED: ltex - testing if it blocks zotcite
-			-- vim.lsp.config("ltex", {
-			-- 	cmd = { "ltex-ls" },
-			-- 	filetypes = { "tex", "plaintex", "bib", "markdown", "text" },
-			-- 	root_markers = { ".git" },
-			-- 	capabilities = capabilities,
-			-- 	settings = {
-			-- 		ltex = {
-			-- 			language = "en-US",
-			-- 			enabled = { "latex", "bibtex", "markdown", "text" },
-			-- 			additionalRules = {
-			-- 				enablePickyRules = true,
-			-- 				motherTongue = "de-DE", -- Detect false friends for German speakers
-			-- 			},
-			-- 			completionEnabled = true,
-			-- 			diagnosticSeverity = "information",
-			-- 			sentenceCacheSize = 5000,
-			-- 		},
-			-- 	},
-			-- })
-			-- vim.lsp.enable("ltex")
-
-			-- Setup ltex_extra via LspAttach autocommand
-			-- vim.api.nvim_create_autocmd("LspAttach", {
-			-- 	callback = function(args)
-			-- 		local client = vim.lsp.get_client_by_id(args.data.client_id)
-			-- 		if client and client.name == "ltex" then
-			-- 			require("ltex_extra").setup({
-			-- 				load_langs = { "en-US", "de-DE" },
-			-- 				path = vim.fn.expand("~") .. "/.local/share/ltex",
-			-- 			})
-			-- 		end
-			-- 	end,
-			-- })
+			vim.lsp.config("ltex", {
+				cmd = { "ltex-ls" },
+				filetypes = { "tex", "plaintex", "bib", "markdown" },
+				root_markers = { ".git" },
+				capabilities = capabilities,
+				settings = {
+					ltex = {
+						language = "en-US",
+						additionalRules = {
+							enablePickyRules = true,
+							motherTongue = "de-DE",
+						},
+						diagnosticSeverity = "information",
+					},
+				},
+			})
+			vim.lsp.enable("ltex")
 
 			vim.lsp.config("pyright", {
 				cmd = { "pyright-langserver", "--stdio" },
