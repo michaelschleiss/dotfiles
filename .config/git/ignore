@@ -1,1 +1,61 @@
+# Claude Code settings
 **/.claude/settings.local.json
+
+# OS files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+*.icloud
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Editors/IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.netrwhist
+Session.vim
+tags
+[._]*.un~
+
+# General environment
+.env
+.env.local
+.env.*.local
+
+# Python (general)
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+
+# C++ / Rust (general build artifacts)
+debug/
+*.o
+*.a
+*.so
+*.dylib
+
+# General caches
+.cache/
+*.egg-info/

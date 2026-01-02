@@ -57,3 +57,7 @@ copy_dir .local  ${XDG_HOME:-$HOME/.local}
 copy_file env/.zsh_profile $HOME
 copy_file env/.bash_profile $HOME
 copy_file env/.fdignore $HOME
+
+log "Configuring git to use global ignore"
+execute git config --global core.excludesfile ~/.config/git/ignore
+log "✓ Git global ignore configured"
