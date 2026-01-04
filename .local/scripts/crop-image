@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+"""
+Crop an image using normalized 0-1 coordinates.
+Matches the pattern from Anthropic's crop_tool cookbook.
+
+Usage: crop-image IMAGE x1 y1 x2 y2 [OUTPUT]
+
+Arguments:
+    IMAGE   Path to input image
+    x1      Left edge (0-1 normalized)
+    y1      Top edge (0-1 normalized)
+    x2      Right edge (0-1 normalized)
+    y2      Bottom edge (0-1 normalized)
+    OUTPUT  Output path (default: /tmp/cropped.png)
+
+Example:
+    crop-image chart.png 0.1 0.7 0.4 0.95
+    crop-image photo.jpg 0 0 0.5 0.5 /tmp/top_left.png
+"""
+import sys
+from pathlib import Path
+
+def main():
+    if len(sys.argv) < 6:
+        print(__doc__)
+        sys.exit(1)
+
+    img_path = Path(sys.argv[1]).expanduser()
+    x1, y1, x2, y2 = map(float, sys.argv[2:6])
+    out_path = sys.argv[6] if len(sys.argv) > 6 else "/tmp/cropped.png"
+
+    # Validate coordinates
+    if not all(0 <= c <= 1 for c in [x1, y1, x2, y2]):
+        print("Error: Coordinates must be between 0 and 1", file=sys.stderr)
+        sys.exit(1)
+    if x1 >= x2 or y1 >= y2:
+        print("Error: Invalid box (need x1 < x2 and y1 < y2)", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        from PIL import Image
+    except ImportError:
+        print("Error: Pillow not installed. Run: pip install Pillow", file=sys.stderr)
+        sys.exit(1)
+
+    if not img_path.exists():
+        print(f"Error: Image not found: {img_path}", file=sys.stderr)
+        sys.exit(1)
+
+    img = Image.open(img_path)
+    w, h = img.size
+
+    # Convert normalized coords to pixels (matching cookbook pattern)
+    box = (int(x1 * w), int(y1 * h), int(x2 * w), int(y2 * h))
+    cropped = img.crop(box)
+    cropped.save(out_path)
+
+    print(f"Cropped {img_path.name} ({w}x{h}) -> {out_path} ({cropped.width}x{cropped.height})")
+    print(f"Region: ({x1:.2f},{y1:.2f})-({x2:.2f},{y2:.2f})")
+
+if __name__ == "__main__":
+    main()

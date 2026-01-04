@@ -1,6 +1,10 @@
 # fzf functionality
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
+# Default editor
+export EDITOR=vim
+export VISUAL=vim
+
 # XDG config paths
 export CLAUDE_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/claude"
 export CODEX_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/codex"

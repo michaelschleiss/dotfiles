@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+#
+# Sync Claude Code config from dev repo to system.
+# Only syncs config files, preserves all history/state.
+#
+# Usage: sync-claude [--dry] [--force]
+#
+# Syncs:
+#   - Files and dirs listed in SYNC_FILES and SYNC_DIRS below
+#
+# Preserves (never touched):
+#   - history.jsonl, .claude.json
+#   - todos/, plans/, projects/, plugins/
+#   - debug/, file-history/, shell-snapshots/
+#   - session-env/, statsig/, telemetry/
+
+set -euo pipefail
+
+SYNC_FILES="CLAUDE.md settings.json"
+SYNC_DIRS="commands skills"
+
+SRC="$(cd "$(dirname "$0")/../.." && pwd)/.config/claude"
+DEST="${CLAUDE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/claude}"
+DRY=0; FORCE=0
+for arg in "$@"; do
+    [[ "$arg" == "--dry" ]] && DRY=1
+    [[ "$arg" == "--force" ]] && FORCE=1
+done
+
+# Check if dest has changes that would be lost
+has_local_changes() {
+    for f in $SYNC_FILES; do
+        [[ -f "$DEST/$f" ]] && ! diff -q "$SRC/$f" "$DEST/$f" >/dev/null 2>&1 && echo "  $f" && return 0
+    done
+    for d in $SYNC_DIRS; do
+        [[ -d "$DEST/$d" ]] && rsync -rln "$DEST/$d/" "$SRC/$d/" 2>/dev/null | grep -q . && echo "  $d/" && return 0
+    done
+    return 1
+}
+
+if [[ $FORCE -eq 0 ]] && has_local_changes; then
+    echo "Local changes detected. Reverse-sync to source first, or use --force."
+    exit 1
+fi
+
+if [[ $DRY -eq 1 ]]; then
+    echo "Would sync: $SRC → $DEST"
+    for f in $SYNC_FILES; do
+        [[ -f "$SRC/$f" ]] && ! diff -q "$SRC/$f" "$DEST/$f" >/dev/null 2>&1 && echo "  $f"
+    done
+    for d in $SYNC_DIRS; do
+        if [[ -d "$SRC/$d" ]]; then
+            if [[ -d "$DEST/$d" ]]; then
+                rsync -rlcn --delete --out-format="  $d/%n" "$SRC/$d/" "$DEST/$d/" 2>/dev/null | grep -v '/$' | grep -v '%' || true
+            else
+                find "$SRC/$d" -type f | sed "s|$SRC/|  |" || true
+            fi
+        fi
+    done
+else
+    for d in $SYNC_DIRS; do mkdir -p "$DEST/$d"; done
+    for f in $SYNC_FILES; do [[ -f "$SRC/$f" ]] && cp "$SRC/$f" "$DEST/$f"; done
+    for d in $SYNC_DIRS; do rsync -rlt --delete "$SRC/$d/" "$DEST/$d/"; done
+    echo "Synced: $SRC → $DEST"
+fi
