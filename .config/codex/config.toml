@@ -1,2 +1,26 @@
 model = "gpt-5.2"
 model_reasoning_effort = "xhigh"
+sandbox_mode = "workspace-write"
+
+[sandbox_workspace_write]
+network_access = true
+
+[notice.model_migrations]
+"gpt-5.2" = "gpt-5.2-codex"
+
+[features]
+web_search_request = true
+web_search_cached = true
+unified_exec = true
+shell_snapshot = true
+apply_patch_freeform = true
+remote_models = true
+undo = true
+
+[mcp_servers.serena]
+command = "uvx"
+args = ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "codex"]
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp"]
