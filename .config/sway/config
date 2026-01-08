@@ -10,9 +10,9 @@ default_border pixel 2
 default_floating_border pixel 2
 
 # Gaps
-gaps inner 5
-gaps outer 5
-smart_gaps off
+gaps inner 15
+gaps outer 10
+smart_gaps on
 
 # Use Mouse+$mod to drag floating windows
 floating_modifier $mod normal
@@ -23,8 +23,8 @@ bindsym $mod+Return exec ghostty
 # Kill focused window
 bindsym $mod+Shift+q kill
 
-# Launcher (wofi)
-bindsym $mod+d exec wofi --show drun
+# Launcher (fuzzel)
+bindsym $mod+d exec fuzzel
 
 # Change focus (vim keys)
 bindsym $mod+h focus left
@@ -124,7 +124,6 @@ output * bg #1e1e2e solid_color
 # Autostart
 exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
 exec nm-applet
-exec mako
 exec kanshi
 
 # Volume keys

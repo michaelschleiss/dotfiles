@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-git clone git@github.com:neovim/neovim.git ~/neovim
+rm -rf ~/neovim
+echo "Cloning neovim repository..."
+git clone -q git@github.com:neovim/neovim.git ~/neovim
 cd ~/neovim
-git fetch
-git checkout v0.11.0
+git fetch -q
+git checkout -q v0.11.5
 
 os_name="$(uname -s)"
 
@@ -12,11 +14,13 @@ if [[ "$os_name" == "Darwin" ]]; then
   brew install ninja cmake gettext curl
   cores=$(sysctl -n hw.ncpu)
 elif [[ "$os_name" == "Linux" ]]; then
-  sudo apt update
-  sudo apt install cmake gettext lua5.1 liblua5.1-0-dev
-  # Needed for plugins
-  sudo apt install cargo luarocks golang ripgrep fd-find
-  ln -s $(which fdfind) ~/.local/bin/fd
+  echo "Updating package lists..."
+  sudo apt-get update -qq
+  echo "Installing build dependencies..."
+  sudo apt-get install -qq cmake gettext lua5.1 liblua5.1-0-dev
+  echo "Installing plugin dependencies..."
+  sudo apt-get install -qq cargo luarocks golang ripgrep fd-find
+  ln -sf $(which fdfind) ~/.local/bin/fd
   cores=$(nproc)
 else
   echo "Unknown OS: $os_name" > $2

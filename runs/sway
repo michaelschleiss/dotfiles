@@ -22,7 +22,7 @@ sudo apt-get install -qq -y \
   swayidle \
   swaybg \
   waybar \
-  wofi \
+  fuzzel \
   wl-clipboard \
   mako-notifier \
   grim \

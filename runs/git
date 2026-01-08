@@ -35,7 +35,10 @@ else
   if [[ "$os_name" == "Darwin" ]]; then
     brew install glab
   elif [[ "$os_name" == "Linux" ]]; then
-    curl -fsSL https://gitlab.com/gitlab-org/cli/-/raw/main/scripts/install.sh | sudo sh
+    GLAB_VERSION=$(curl -sL "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/releases" | jq -r '.[0].tag_name' | tr -d 'v')
+    curl -fsSLO "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_amd64.deb"
+    sudo dpkg -i "glab_${GLAB_VERSION}_linux_amd64.deb"
+    rm "glab_${GLAB_VERSION}_linux_amd64.deb"
   fi
 fi
 
