@@ -1,15 +1,42 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+log() {
+  echo "[zsh] $*"
+}
+
+os_name="$(uname -s)"
+
+# --- Install zsh + plugins (Linux only, macOS has zsh built-in) ---
+if [[ "$os_name" == "Linux" ]]; then
+  log "Installing zsh and plugins"
+  sudo apt-get update -qq
+  sudo apt-get install -qq -y zsh zsh-syntax-highlighting
+fi
+
+# --- Set zsh as default shell ---
+current_shell="$(basename "$SHELL")"
+if [[ "$current_shell" != "zsh" ]]; then
+  log "Setting zsh as default shell"
+  chsh -s "$(which zsh)"
+else
+  log "zsh already default shell"
+fi
+
+# --- Source .zsh_profile from .zshrc ---
 ZSHRC="$HOME/.zshrc"
 SOURCE_LINE="[[ -f ~/.zsh_profile ]] && source ~/.zsh_profile"
 
-# Check if the export line is already in the .zshrc
+# Create .zshrc if it doesn't exist
+touch "$ZSHRC"
+
 if ! grep -Fxq "$SOURCE_LINE" "$ZSHRC"; then
   echo "" >> "$ZSHRC"
   echo "# Added by setup script on $(date)" >> "$ZSHRC"
   echo "$SOURCE_LINE" >> "$ZSHRC"
-  echo "✅ Added to .zshrc: $SOURCE_LINE"
+  log "Added to .zshrc: $SOURCE_LINE"
 else
-  echo "🔁 Already in .zshrc: $SOURCE_LINE"
+  log "Already in .zshrc: $SOURCE_LINE"
 fi
+
+log "Done - restart terminal or run: exec zsh"

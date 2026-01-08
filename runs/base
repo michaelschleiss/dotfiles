@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Base system setup for a fresh install
+# Run this first before other scripts
+
+log() {
+  echo "[base] $*"
+}
+
+os_name="$(uname -s)"
+
+# --- Essential tools ---
+log "Installing essential packages"
+if [[ "$os_name" == "Darwin" ]]; then
+  brew install git curl wget pkg-config
+elif [[ "$os_name" == "Linux" ]]; then
+  sudo apt-get update -qq
+  sudo apt-get install -qq -y \
+    git \
+    curl \
+    wget \
+    build-essential \
+    pkg-config \
+    unzip \
+    htop \
+    ninja-build \
+    cmake \
+    openssh-server
+  sudo systemctl enable --now ssh
+fi
+
+# --- Ghostty terminal ---
+if command -v ghostty &>/dev/null; then
+  log "Ghostty already installed"
+else
+  if [[ "$os_name" == "Darwin" ]]; then
+    log "Installing Ghostty (brew cask)"
+    brew install --cask ghostty
+  elif [[ "$os_name" == "Linux" ]]; then
+    log "Installing Ghostty (.deb from ghostty-ubuntu)"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"
+  fi
+fi
+
+# --- Telegram ---
+if command -v telegram-desktop &>/dev/null || [[ -x "$HOME/.local/bin/Telegram/Telegram" ]] || [[ -d "/Applications/Telegram.app" ]]; then
+  log "Telegram already installed"
+else
+  if [[ "$os_name" == "Darwin" ]]; then
+    log "Installing Telegram (brew cask)"
+    brew install --cask telegram
+  elif [[ "$os_name" == "Linux" ]]; then
+    log "Installing Telegram"
+    tmpdir="$(mktemp -d)"
+    curl -L https://telegram.org/dl/desktop/linux -o "$tmpdir/telegram.tar.xz"
+    tar -xf "$tmpdir/telegram.tar.xz" -C "$tmpdir"
+    mkdir -p "$HOME/.local/bin"
+    mv "$tmpdir/Telegram" "$HOME/.local/bin/"
+    rm -rf "$tmpdir"
+    ln -sf "$HOME/.local/bin/Telegram/Telegram" "$HOME/.local/bin/telegram"
+    log "Installed Telegram to ~/.local/bin/Telegram"
+  fi
+fi
+
+# --- Brave browser ---
+if command -v brave-browser &>/dev/null; then
+  log "Brave already installed"
+else
+  if [[ "$os_name" == "Darwin" ]]; then
+    log "Installing Brave (brew cask)"
+    brew install --cask brave-browser
+  elif [[ "$os_name" == "Linux" ]]; then
+    log "Installing Brave (apt)"
+    sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
+      https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+    echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" \
+      | sudo tee /etc/apt/sources.list.d/brave-browser-release.list
+    sudo apt-get update -qq
+    sudo apt-get install -qq -y brave-browser
+  fi
+fi
+
+log "Done"

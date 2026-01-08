@@ -1,3 +1,15 @@
+# Prompt
+PS1='%~ %# '
+
+# History
+HISTSIZE=10000
+SAVEHIST=10000
+HISTFILE=~/.zsh_history
+setopt SHARE_HISTORY
+
+# Syntax highlighting
+source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
+
 # fzf functionality
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 

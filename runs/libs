@@ -7,9 +7,10 @@ set -euo pipefail
 # install a package via brew (mac) or apt (linux)
 # usage: install <name> [linux-name-if-different]
 install() {
+  echo "Installing $1..."
   case "$(uname -s)" in
     Darwin) brew install "$1" ;;
-    Linux)  sudo apt install -y "${2:-$1}" ;;
+    Linux)  sudo apt-get install -qqq -y "${2:-$1}" ;;
   esac
 }
 
@@ -18,3 +19,10 @@ install() {
 install ripgrep
 install fd fd-find
 install fzf
+install bat
+
+# On Ubuntu, bat binary is called 'batcat' - create symlink
+if [[ "$(uname -s)" == "Linux" ]] && command -v batcat &>/dev/null && ! command -v bat &>/dev/null; then
+  mkdir -p ~/.local/bin
+  ln -sf "$(which batcat)" ~/.local/bin/bat
+fi

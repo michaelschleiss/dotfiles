@@ -1,6 +1,6 @@
-font-family = "FiraCode Nerd Font Mono Bold"
+font-family = "JetBrainsMono Nerd Font"
 theme = "Kanagawa Wave"
-font-size = 16
+font-size = 14
 background-opacity = 1.0
 
 # Quick terminal (dropdown)

@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Remove Ubuntu desktop bloat
+
+log() {
+  echo "[debloat] $*"
+}
+
+# Remove packages quietly, showing only real errors
+apt_remove() {
+  sudo DEBIAN_FRONTEND=noninteractive apt-get remove --auto-remove -qq -y "$@" 2>&1 \
+    | grep -Ev "(is not installed|Unable to locate package)" \
+    || true
+}
+
+os_name="$(uname -s)"
+
+if [[ "$os_name" != "Linux" ]]; then
+  log "Only for Linux, skipping"
+  exit 0
+fi
+
+# Clean up leftover /snap from previous run (after reboot)
+if [[ -d /snap ]] && ! mount | grep -q '/snap'; then
+  log "Cleaning leftover /snap directory"
+  sudo rm -rf /snap
+fi
+
+log "Marking essential GNOME packages as manual"
+sudo apt-mark manual gnome-shell gnome-session gnome-control-center gdm3 || true
+
+log "Removing all snaps"
+if command -v snap &> /dev/null; then
+  # Keep removing snaps until none left (handles dependencies)
+  while snaps=$(snap list 2>/dev/null | awk 'NR>1 {print $1}') && [[ -n "$snaps" ]]; do
+    for snap_pkg in $snaps; do
+      log "Removing snap: $snap_pkg"
+      sudo snap remove --purge "$snap_pkg" 2>/dev/null || true
+    done
+  done
+fi
+
+log "Stopping snapd services"
+sudo systemctl stop snapd.service snapd.socket snapd.seeded.service 2>/dev/null || true
+sudo systemctl disable snapd.service snapd.socket snapd.seeded.service 2>/dev/null || true
+
+log "Unmounting snap filesystems"
+for mnt in $(mount | grep '/snap' | awk '{print $3}' | sort -r); do
+  sudo umount -l "$mnt" 2>/dev/null || true
+done
+
+log "Removing snapd package"
+apt_remove snapd
+
+log "Cleaning up snap directories"
+rm -rf ~/snap 2>/dev/null || true
+sudo rm -rf /var/snap 2>/dev/null || true
+sudo rm -rf /var/lib/snapd 2>/dev/null || true
+sudo rm -rf /var/cache/snapd 2>/dev/null || true
+# /snap may have zombie mounts - check and remove if clear
+if mount | grep -q '/snap'; then
+  log "Note: /snap has zombie mounts, will be cleaned after reboot"
+else
+  sudo rm -rf /snap 2>/dev/null || true
+fi
+
+log "Blocking snap reinstall"
+sudo tee /etc/apt/preferences.d/nosnap.pref > /dev/null << 'EOF'
+Package: snapd
+Pin: release a=*
+Pin-Priority: -10
+EOF
+
+log "Removing games"
+apt_remove aisleriot gnome-mines gnome-sudoku gnome-mahjongg gnome-2048
+
+log "Removing default apps"
+apt_remove thunderbird rhythmbox shotwell cheese totem remmina \
+  transmission-gtk deja-dup gnome-calendar gnome-contacts libreoffice-*
+
+log "Removing GNOME extras"
+apt_remove gnome-characters gnome-clocks gnome-font-viewer gnome-logs \
+  gnome-initial-setup gnome-user-docs gnome-text-editor yelp
+
+log "Removing accessibility tools"
+apt_remove brltty orca speech-dispatcher
+
+log "Removing telemetry"
+apt_remove apport apport-gtk whoopsie ubuntu-report popularity-contest
+
+log "Removing unused XDG directories"
+rmdir ~/Desktop ~/Documents ~/Pictures ~/Public ~/Templates ~/Music ~/Videos 2>/dev/null || true
+mkdir -p ~/.config
+echo "enabled=false" > ~/.config/user-dirs.conf
+
+log "Cleaning up"
+sudo DEBIAN_FRONTEND=noninteractive apt-get autoremove -qq -y
+
+log "Done"

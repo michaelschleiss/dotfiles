@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Sway window manager setup (Wayland)
+
+log() {
+  echo "[sway] $*"
+}
+
+os_name="$(uname -s)"
+
+if [[ "$os_name" != "Linux" ]]; then
+  log "Sway is Linux-only, skipping"
+  exit 0
+fi
+
+log "Installing sway and dependencies"
+sudo apt-get update -qq
+sudo apt-get install -qq -y \
+  sway \
+  swaylock \
+  swayidle \
+  swaybg \
+  waybar \
+  wofi \
+  wl-clipboard \
+  mako-notifier \
+  grim \
+  slurp \
+  brightnessctl \
+  playerctl \
+  pavucontrol \
+  network-manager-gnome \
+  xdg-desktop-portal-wlr \
+  xdg-desktop-portal-gtk \
+  pipewire \
+  pipewire-pulse \
+  wireplumber \
+  fonts-font-awesome \
+  nvidia-prime \
+  kanshi # auto-switches display profiles on monitor plug/unplug
+
+log "Done - logout and select 'Sway' at login screen"
