@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+log() {
+  echo "[nvidia] $*"
+}
+
+have() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+get_ubuntu_version() {
+  if [[ -f /etc/os-release ]]; then
+    # shellcheck disable=SC1091
+    source /etc/os-release
+    echo "${VERSION_ID//./}"
+  else
+    echo ""
+  fi
+}
+
+check_nvidia_gpu() {
+  if ! lspci | grep -qi nvidia; then
+    echo "No NVIDIA GPU detected. Exiting." >&2
+    exit 1
+  fi
+}
+
+remove_existing_nvidia() {
+  log "Removing existing NVIDIA packages (keeping nvidia-prime)..."
+  dpkg-query -W -f='${Package}\n' | grep -E '^(nvidia-|libnvidia-)' | grep -v nvidia-prime | xargs -r sudo apt-get remove --purge -y || true
+  sudo apt-get autoremove -y || true
+}
+
+install_cuda_keyring() {
+  local ubuntu_ver="$1"
+  local keyring_url="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu${ubuntu_ver}/x86_64/cuda-keyring_1.1-1_all.deb"
+  local tmpfile="/tmp/cuda-keyring.deb"
+
+  log "Downloading CUDA keyring for Ubuntu ${ubuntu_ver}..."
+  curl -fsSL "${keyring_url}" -o "${tmpfile}"
+
+  log "Installing CUDA keyring..."
+  sudo dpkg -i "${tmpfile}"
+  rm -f "${tmpfile}"
+
+  sudo apt-get update
+}
+
+install_nvidia_driver() {
+  log "Installing NVIDIA driver (CUDA/cuDNN via conda per-project)..."
+  sudo apt-get install -y cuda-drivers
+}
+
+verify_installation() {
+  log "Verifying installation..."
+  if have nvidia-smi; then
+    nvidia-smi --query-gpu=name,driver_version --format=csv,noheader || true
+  fi
+}
+
+main() {
+  local os_name
+  os_name="$(uname -s)"
+
+  if [[ "${os_name}" != "Linux" ]]; then
+    echo "This script only supports Linux." >&2
+    exit 1
+  fi
+
+  local ubuntu_ver
+  ubuntu_ver="$(get_ubuntu_version)"
+
+  if [[ -z "${ubuntu_ver}" ]]; then
+    echo "Could not detect Ubuntu version." >&2
+    exit 1
+  fi
+
+  log "Detected Ubuntu ${ubuntu_ver}"
+
+  check_nvidia_gpu
+  remove_existing_nvidia
+  install_cuda_keyring "${ubuntu_ver}"
+  install_nvidia_driver
+  verify_installation
+
+  log "Done! Reboot required: sudo reboot"
+}
+
+main "$@"

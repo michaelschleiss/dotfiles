@@ -93,11 +93,6 @@ install_codex_from_github() {
   local tmpdir
   tmpdir="$(mktemp -d)"
 
-  cleanup() {
-    rm -rf "${tmpdir}"
-  }
-  trap cleanup EXIT
-
   log "Downloading codex (${target})"
   curl -fsSL "${url}" -o "${tmpdir}/${asset}"
 
@@ -108,11 +103,13 @@ install_codex_from_github() {
 
   local extracted_bin="${tmpdir}/codex-${target}"
   if [[ ! -f "${extracted_bin}" ]]; then
+    rm -rf "${tmpdir}"
     echo "Expected ${extracted_bin} after extracting ${asset}" >&2
     return 1
   fi
 
   install -m 0755 "${extracted_bin}" "${install_dir}/codex"
+  rm -rf "${tmpdir}"
   log "Installed codex to ${install_dir}/codex"
 }
 
@@ -131,6 +128,30 @@ install_codex() {
   fi
 
   install_codex_from_github
+}
+
+install_uv() {
+  if have uvx; then
+    log "uv already installed: $(uv --version 2>/dev/null || echo ok)"
+    return 0
+  fi
+
+  log "Installing uv"
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+
+  # Source the env to make uv available immediately
+  if [[ -f "${HOME}/.local/bin/env" ]]; then
+    # shellcheck disable=SC1091
+    source "${HOME}/.local/bin/env"
+  fi
+
+  if have uvx; then
+    log "Installed uv: $(uv --version 2>/dev/null || echo ok)"
+    return 0
+  fi
+
+  echo "uv installed but 'uvx' is not on PATH; ensure ~/.local/bin is in PATH." >&2
+  return 1
 }
 
 install_claude_code() {
@@ -167,6 +188,7 @@ install_claude_code() {
 }
 
 main() {
+  install_uv
   install_codex
   install_claude_code
   log "Done"

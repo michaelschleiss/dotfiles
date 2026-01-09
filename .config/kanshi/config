@@ -1,8 +1,13 @@
 # Kanshi - automatic display configuration
 
 # External monitor (LG ultrawide) connected - disable internal
-profile docked {
+profile lg_docked {
     output "LG Electronics LG HDR WQHD 108NTXR8S522" enable mode 3440x1440@99.982Hz position 0,0 scale 1
+    output eDP-1 disable
+}
+
+# Any other external monitor connected - disable internal
+profile generic_docked {
     output eDP-1 disable
 }
 
