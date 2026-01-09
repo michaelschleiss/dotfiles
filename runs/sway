@@ -40,4 +40,44 @@ sudo apt-get install -qq -y \
   nvidia-prime \
   kanshi # auto-switches display profiles on monitor plug/unplug
 
+# Hybrid GPU setup (Intel + Nvidia)
+if lspci | grep -qi nvidia && lspci | grep -qi "vga.*intel"; then
+  log "Hybrid GPU detected (Intel + Nvidia)"
+
+  # Find Intel GPU card
+  intel_card=""
+  for card in /sys/class/drm/card*/device/driver; do
+    if [[ -L "$card" ]] && readlink "$card" | grep -q i915; then
+      intel_card="/dev/dri/$(basename $(dirname $(dirname $card)))"
+      break
+    fi
+  done
+
+  if [[ -n "$intel_card" ]]; then
+    log "Intel GPU at $intel_card"
+
+    # Set WLR_DRM_DEVICES for Wayland compositors
+    mkdir -p ~/.config/environment.d
+    cat > ~/.config/environment.d/gpu.conf << EOF
+# Use Intel GPU for Wayland compositors on hybrid systems
+WLR_DRM_DEVICES=$intel_card
+EOF
+    log "Created ~/.config/environment.d/gpu.conf"
+
+    # Create user session with --unsupported-gpu flag
+    mkdir -p ~/.local/share/wayland-sessions
+    cat > ~/.local/share/wayland-sessions/sway.desktop << 'EOF'
+[Desktop Entry]
+Name=Sway
+Comment=Sway on hybrid GPU system
+Exec=sway --unsupported-gpu
+Type=Application
+DesktopNames=sway
+EOF
+    log "Created ~/.local/share/wayland-sessions/sway.desktop"
+  else
+    log "Warning: Could not find Intel GPU card device"
+  fi
+fi
+
 log "Done - logout and select 'Sway' at login screen"

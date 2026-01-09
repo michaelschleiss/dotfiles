@@ -29,8 +29,8 @@ check_nvidia_gpu() {
 
 remove_existing_nvidia() {
   log "Removing existing NVIDIA packages (keeping nvidia-prime)..."
-  dpkg-query -W -f='${Package}\n' | grep -E '^(nvidia-|libnvidia-)' | grep -v nvidia-prime | xargs -r sudo apt-get remove --purge -y || true
-  sudo apt-get autoremove -y || true
+  dpkg-query -W -f='${Package}\n' | grep -E '^(nvidia-|libnvidia-)' | grep -v nvidia-prime | xargs -r sudo apt-get remove --purge -qq || true
+  sudo apt-get autoremove -qq || true
 }
 
 install_cuda_keyring() {
@@ -42,22 +42,19 @@ install_cuda_keyring() {
   curl -fsSL "${keyring_url}" -o "${tmpfile}"
 
   log "Installing CUDA keyring..."
-  sudo dpkg -i "${tmpfile}"
+  sudo dpkg -i "${tmpfile}" >/dev/null
   rm -f "${tmpfile}"
 
-  sudo apt-get update
+  sudo apt-get update -qq
 }
 
 install_nvidia_driver() {
-  log "Installing NVIDIA driver (CUDA/cuDNN via conda per-project)..."
-  sudo apt-get install -y cuda-drivers
+  log "Installing NVIDIA driver..."
+  sudo apt-get install -qq cuda-drivers
 }
 
 verify_installation() {
-  log "Verifying installation..."
-  if have nvidia-smi; then
-    nvidia-smi --query-gpu=name,driver_version --format=csv,noheader || true
-  fi
+  log "Verify after reboot with: nvidia-smi"
 }
 
 main() {

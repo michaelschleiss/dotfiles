@@ -121,10 +121,8 @@ exec waybar
 # Background
 output * bg #1e1e2e solid_color
 
-# Output configuration - external display primary
-# Disable internal display when external is connected (kanshi will manage this dynamically)
-output eDP-1 disable
-output DP-1 enable mode 3440x1440@99.982Hz position 0,0
+# Output configuration - let kanshi handle dynamic output management
+output DP-1 mode 3440x1440@99.982Hz position 0,0
 
 # Autostart
 exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
