@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
+
+# NVIDIA driver setup using CUDA repo (nvidia-open for Blackwell GPUs)
+#
+# On hybrid laptops:
+# - Display: Intel GPU (configured via WLR_DRM_DEVICES in runs/sway)
+# - Compute: Nvidia GPU (CUDA/PyTorch/TensorFlow)
 
 log() {
   echo "[nvidia] $*"
@@ -28,8 +33,8 @@ check_nvidia_gpu() {
 }
 
 remove_existing_nvidia() {
-  log "Removing existing NVIDIA packages (keeping nvidia-prime)..."
-  dpkg-query -W -f='${Package}\n' | grep -E '^(nvidia-|libnvidia-)' | grep -v nvidia-prime | xargs -r sudo apt-get remove --purge -qq -y >/dev/null 2>&1 || true
+  log "Removing existing NVIDIA packages..."
+  sudo apt-get remove --purge -qq -y 'nvidia-*' 'libnvidia-*' >/dev/null 2>&1 || true
   sudo apt-get autoremove -qq -y >/dev/null 2>&1 || true
 }
 

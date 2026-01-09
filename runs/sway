@@ -37,7 +37,6 @@ sudo apt-get install -qq -y \
   pipewire-pulse \
   wireplumber \
   fonts-font-awesome \
-  nvidia-prime \
   kanshi # auto-switches display profiles on monitor plug/unplug
 
 # Hybrid GPU setup (Intel + Nvidia)
