@@ -89,6 +89,10 @@ apt_remove brltty orca speech-dispatcher
 log "Removing telemetry"
 apt_remove apport apport-gtk whoopsie ubuntu-report popularity-contest
 
+log "Disabling unnecessary boot services"
+# NetworkManager-wait-online just blocks boot until network is up - not needed for desktop
+sudo systemctl disable NetworkManager-wait-online.service &>/dev/null || true
+
 log "Removing unused XDG directories"
 rmdir ~/Desktop ~/Documents ~/Pictures ~/Public ~/Templates ~/Music ~/Videos 2>/dev/null || true
 mkdir -p ~/.config
