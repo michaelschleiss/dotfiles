@@ -64,17 +64,17 @@ WLR_DRM_DEVICES=$intel_card
 EOF
     log "Created ~/.config/environment.d/gpu.conf"
 
-    # Create user session with --unsupported-gpu flag
-    mkdir -p ~/.local/share/wayland-sessions
-    cat > ~/.local/share/wayland-sessions/sway.desktop << 'EOF'
+    # Create system session file with --unsupported-gpu flag
+    # GDM only reads from /usr/share/wayland-sessions/, not ~/.local/share/
+    sudo tee /usr/share/wayland-sessions/sway-hybrid.desktop > /dev/null << 'EOF'
 [Desktop Entry]
-Name=Sway
+Name=Sway (Hybrid GPU)
 Comment=Sway on hybrid GPU system
 Exec=sway --unsupported-gpu
 Type=Application
 DesktopNames=sway
 EOF
-    log "Created ~/.local/share/wayland-sessions/sway.desktop"
+    log "Created /usr/share/wayland-sessions/sway-hybrid.desktop"
   else
     log "Warning: Could not find Intel GPU card device"
   fi
