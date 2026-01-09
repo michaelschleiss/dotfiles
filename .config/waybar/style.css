@@ -9,10 +9,8 @@ window#waybar {
 }
 
 #workspaces button {
-    padding: 0 8px;
     color: #cdd6f4;
     background-color: transparent;
-    border-radius: 0;
 }
 
 #workspaces button:hover {
@@ -24,37 +22,6 @@ window#waybar {
     color: #1e1e2e;
 }
 
-#workspaces button.urgent {
-    background-color: #f38ba8;
-}
-
-#clock,
-#battery,
-#cpu,
-#memory,
-#network,
-#pulseaudio,
-#tray,
-#mode {
-    padding: 0 10px;
-}
-
-#battery.charging {
-    color: #a6e3a1;
-}
-
-#battery.warning:not(.charging) {
-    color: #f9e2af;
-}
-
-#battery.critical:not(.charging) {
-    color: #f38ba8;
-}
-
 #network.disconnected {
     color: #f38ba8;
-}
-
-#pulseaudio.muted {
-    color: #6c7086;
 }

@@ -1,10 +1,11 @@
 {
     "layer": "top",
     "position": "left",
-    "width": 30,
+    "width": 50,
+    "margin": 3,
     "modules-left": ["sway/workspaces", "sway/mode"],
-    "modules-center": [],
-    "modules-right": ["network", "clock", "tray"],
+    "modules-center": ["clock"],
+    "modules-right": ["custom/notification", "network"],
 
     "sway/workspaces": {
         "disable-scroll": true
@@ -17,8 +18,7 @@
     },
     "clock": {
         "format": "{:%H:%M}",
-        "format-alt": "{:%Y-%m-%d %H:%M}",
-        "tooltip-format": "{:%Y-%m-%d | %H:%M}"
+        "tooltip": false
     },
     "network": {
         "format-wifi": "",
@@ -28,5 +28,23 @@
     },
     "tray": {
         "spacing": 10
+    },
+    "custom/notification": {
+        "tooltip": false,
+        "format": "{icon}",
+        "format-icons": {
+            "notification": "<span foreground='red'><sup></sup></span>",
+            "none": "",
+            "dnd-notification": "<span foreground='red'><sup></sup></span>",
+            "dnd-none": "",
+            "inhibited-notification": "<span foreground='red'><sup></sup></span>",
+            "inhibited-none": ""
+        },
+        "return-type": "json",
+        "exec-if": "which swaync-client",
+        "exec": "swaync-client -swb",
+        "on-click": "swaync-client -t -sw",
+        "on-click-right": "swaync-client -d -sw",
+        "escape": true
     }
 }

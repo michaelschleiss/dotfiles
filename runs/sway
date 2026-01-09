@@ -24,7 +24,7 @@ sudo apt-get install -qq -y \
   waybar \
   fuzzel \
   wl-clipboard \
-  mako-notifier \
+  sway-notification-center \
   grim \
   slurp \
   brightnessctl \

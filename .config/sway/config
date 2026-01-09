@@ -10,8 +10,8 @@ default_border pixel 2
 default_floating_border pixel 2
 
 # Gaps
-gaps inner 15
-gaps outer 10
+gaps inner 5
+gaps outer 5
 smart_gaps on
 
 # Use Mouse+$mod to drag floating windows
@@ -121,10 +121,16 @@ exec waybar
 # Background
 output * bg #1e1e2e solid_color
 
+# Output configuration - external display primary
+# Disable internal display when external is connected (kanshi will manage this dynamically)
+output eDP-1 disable
+output DP-1 enable mode 3440x1440@99.982Hz position 0,0
+
 # Autostart
 exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
 exec nm-applet
 exec kanshi
+exec swaync
 
 # Volume keys
 bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5%
