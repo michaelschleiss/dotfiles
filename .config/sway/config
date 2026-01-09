@@ -140,7 +140,7 @@ bindsym XF86MonBrightnessUp exec brightnessctl set +10%
 bindsym XF86MonBrightnessDown exec brightnessctl set 10%-
 
 # Screenshot (grim + slurp)
-bindsym $mod+Shift+s exec grim -g "$(slurp)" - | wl-copy
+bindsym $mod+Shift+s exec grim -g "$(slurp)" - | tee ~/.screenshots/$(date +%Y%m%d-%H%M%S).png | wl-copy
 
 # Lock screen
 bindsym $mod+Shift+period exec swaylock -f -c 000000

@@ -58,26 +58,6 @@ else
   fi
 fi
 
-# --- Telegram ---
-if command -v telegram-desktop &>/dev/null || [[ -x "$HOME/.local/bin/Telegram/Telegram" ]] || [[ -d "/Applications/Telegram.app" ]]; then
-  log "Telegram already installed"
-else
-  if [[ "$os_name" == "Darwin" ]]; then
-    log "Installing Telegram (brew cask)"
-    brew install --cask telegram
-  elif [[ "$os_name" == "Linux" ]]; then
-    log "Installing Telegram"
-    tmpdir="$(mktemp -d)"
-    curl -L https://telegram.org/dl/desktop/linux -o "$tmpdir/telegram.tar.xz"
-    tar -xf "$tmpdir/telegram.tar.xz" -C "$tmpdir"
-    mkdir -p "$HOME/.local/bin"
-    mv "$tmpdir/Telegram" "$HOME/.local/bin/"
-    rm -rf "$tmpdir"
-    ln -sf "$HOME/.local/bin/Telegram/Telegram" "$HOME/.local/bin/telegram"
-    log "Installed Telegram to ~/.local/bin/Telegram"
-  fi
-fi
-
 # --- Brave browser ---
 if command -v brave-browser &>/dev/null; then
   log "Brave already installed"

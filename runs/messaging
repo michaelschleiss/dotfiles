@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Messaging apps: Telegram, Slack, Thunderbird
+
+log() {
+  echo "[messaging] $*"
+}
+
+os_name="$(uname -s)"
+
+# --- Telegram ---
+if command -v telegram-desktop &>/dev/null || [[ -x "$HOME/.local/bin/Telegram/Telegram" ]] || [[ -d "/Applications/Telegram.app" ]]; then
+  log "Telegram already installed"
+else
+  if [[ "$os_name" == "Darwin" ]]; then
+    log "Installing Telegram (brew cask)"
+    brew install --cask telegram
+  elif [[ "$os_name" == "Linux" ]]; then
+    log "Installing Telegram"
+    tmpdir="$(mktemp -d)"
+    curl -L https://telegram.org/dl/desktop/linux -o "$tmpdir/telegram.tar.xz"
+    tar -xf "$tmpdir/telegram.tar.xz" -C "$tmpdir"
+    mkdir -p "$HOME/.local/bin"
+    rm -rf "$HOME/.local/bin/Telegram"
+    mv "$tmpdir/Telegram" "$HOME/.local/bin/"
+    rm -rf "$tmpdir"
+    ln -sf "$HOME/.local/bin/Telegram/Telegram" "$HOME/.local/bin/telegram"
+    log "Installed Telegram to ~/.local/bin/Telegram"
+  fi
+fi
+
+# --- Slack ---
+if command -v slack &>/dev/null || [[ -d "/Applications/Slack.app" ]]; then
+  log "Slack already installed"
+else
+  if [[ "$os_name" == "Darwin" ]]; then
+    log "Installing Slack (brew cask)"
+    brew install --cask slack
+  elif [[ "$os_name" == "Linux" ]]; then
+    log "Installing Slack (.deb)"
+    tmpdir="$(mktemp -d)"
+    curl -L "https://downloads.slack-edge.com/desktop-releases/linux/x64/4.41.105/slack-desktop-4.41.105-amd64.deb" -o "$tmpdir/slack.deb"
+    sudo apt-get install -qq -y "$tmpdir/slack.deb"
+    rm -rf "$tmpdir"
+  fi
+fi
+
+# --- Thunderbird (Linux only) ---
+if [[ "$os_name" == "Linux" ]]; then
+  if command -v thunderbird &>/dev/null; then
+    log "Thunderbird already installed"
+  else
+    log "Installing Thunderbird (Mozilla PPA)"
+    sudo add-apt-repository -y ppa:mozillateam/ppa >/dev/null
+    # Prefer PPA version over any future Ubuntu packages
+    echo 'Package: thunderbird*
+Pin: release o=LP-PPA-mozillateam
+Pin-Priority: 1001' | sudo tee /etc/apt/preferences.d/mozilla-thunderbird >/dev/null
+    sudo apt-get update -qq
+    sudo apt-get install -qq -y thunderbird
+  fi
+fi
+
+log "Done"

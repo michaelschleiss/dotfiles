@@ -6,8 +6,15 @@ profile lg_docked {
     output eDP-1 disable
 }
 
-# Any other external monitor connected - disable internal
-profile generic_docked {
+# Any external on DP-1 - disable internal
+profile dp1_docked {
+    output DP-1 enable
+    output eDP-1 disable
+}
+
+# Any external on DP-2 - disable internal
+profile dp2_docked {
+    output DP-2 enable
     output eDP-1 disable
 }
 
