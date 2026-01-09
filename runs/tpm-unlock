@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# TPM2 auto-unlock for LUKS encrypted disks
+# Requires Ubuntu 25.04+ (native dracut support for TPM2 in initramfs)
+#
+# On Ubuntu <25.04, initramfs-tools doesn't support TPM2.
+# The TPM key can be enrolled early, but auto-unlock won't work until upgrade.
+
+log() {
+  echo "[tpm-unlock] $*"
+}
+
+if [[ "$(uname -s)" != "Linux" ]]; then
+  exit 0
+fi
+
+# Check Ubuntu version - need 25.04+ for TPM2 initramfs support
+if [[ -f /etc/os-release ]]; then
+  source /etc/os-release
+  ubuntu_ver="${VERSION_ID:-0}"
+  # Compare versions: need >= 25.04
+  if [[ "$(printf '%s\n' "25.04" "$ubuntu_ver" | sort -V | head -n1)" != "25.04" ]]; then
+    log "Ubuntu $ubuntu_ver detected - TPM2 auto-unlock requires 25.04+"
+    log "Skipping (upgrade to 25.04+ for native support)"
+    exit 0
+  fi
+fi
+
+# Check for TPM
+if [[ ! -e /dev/tpmrm0 ]]; then
+  log "No TPM found, skipping"
+  exit 0
+fi
+
+# Find LUKS partition
+luks_device=""
+for part in /dev/nvme0n1p3 /dev/nvme0n1p2 /dev/sda3 /dev/sda2 /dev/vda3 /dev/vda2; do
+  if [[ -b "$part" ]] && sudo cryptsetup isLuks "$part" 2>/dev/null; then
+    luks_device="$part"
+    break
+  fi
+done
+
+if [[ -z "$luks_device" ]]; then
+  log "No LUKS partition found, skipping"
+  exit 0
+fi
+
+log "Found LUKS device: $luks_device"
+
+# Step 1: Enroll TPM2 key if not already done
+if sudo systemd-cryptenroll "$luks_device" 2>&1 | grep -q tpm2; then
+  log "TPM2 already enrolled"
+else
+  log "Enrolling TPM2 for auto-unlock (you will be prompted for LUKS password)..."
+  sudo systemd-cryptenroll --tpm2-device=auto "$luks_device"
+fi
+
+# Step 2: Update crypttab if needed
+if ! grep -q 'tpm2-device=auto' /etc/crypttab; then
+  log "Updating /etc/crypttab..."
+  sudo sed -i 's/luks$/luks,tpm2-device=auto/' /etc/crypttab
+fi
+
+# Step 3: Rebuild initramfs (Ubuntu 25.04+ handles TPM2 natively)
+log "Rebuilding initramfs..."
+sudo update-initramfs -u -k all >/dev/null
+
+log "Done! Reboot to test TPM2 auto-unlock."
+log "Keep your LUKS password as backup - needed if TPM is cleared or hardware changes."

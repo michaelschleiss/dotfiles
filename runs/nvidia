@@ -29,8 +29,8 @@ check_nvidia_gpu() {
 
 remove_existing_nvidia() {
   log "Removing existing NVIDIA packages (keeping nvidia-prime)..."
-  dpkg-query -W -f='${Package}\n' | grep -E '^(nvidia-|libnvidia-)' | grep -v nvidia-prime | xargs -r sudo apt-get remove --purge -qq || true
-  sudo apt-get autoremove -qq || true
+  dpkg-query -W -f='${Package}\n' | grep -E '^(nvidia-|libnvidia-)' | grep -v nvidia-prime | xargs -r sudo apt-get remove --purge -qq -y >/dev/null 2>&1 || true
+  sudo apt-get autoremove -qq -y >/dev/null 2>&1 || true
 }
 
 install_cuda_keyring() {
@@ -49,8 +49,8 @@ install_cuda_keyring() {
 }
 
 install_nvidia_driver() {
-  log "Installing NVIDIA driver..."
-  sudo apt-get install -qq cuda-drivers
+  log "Installing NVIDIA open kernel modules (required for Blackwell GPUs)..."
+  sudo apt-get install -qq -y nvidia-open >/dev/null
 }
 
 verify_installation() {
