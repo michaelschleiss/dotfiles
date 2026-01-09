@@ -19,7 +19,19 @@ elif [[ "$os_name" == "Linux" ]]; then
   echo "Installing build dependencies..."
   sudo apt-get install -qq cmake gettext lua5.1 liblua5.1-0-dev
   echo "Installing plugin dependencies..."
-  sudo apt-get install -qq cargo luarocks golang ripgrep fd-find
+  sudo apt-get install -qq luarocks golang ripgrep fd-find
+  echo "Installing lazygit..."
+  LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+  curl -Lo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+  tar -xzf /tmp/lazygit.tar.gz -C /tmp lazygit
+  sudo install /tmp/lazygit /usr/local/bin
+  rm /tmp/lazygit.tar.gz /tmp/lazygit
+  echo "Installing Node.js 22 LTS via NodeSource..."
+  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+  sudo apt-get install -qq nodejs
+  echo "Installing tree-sitter CLI..."
+  source ~/.cargo/env
+  cargo install tree-sitter-cli@0.25.0
   ln -sf $(which fdfind) ~/.local/bin/fd
   cores=$(nproc)
 else
@@ -27,8 +39,10 @@ else
   exit 1
 fi
 
-make CMAKE_BUILD_TYPE=RelWithDebInfo -j${cores}
-sudo make install
+echo "Building neovim..."
+make -s CMAKE_BUILD_TYPE=RelWithDebInfo -j${cores}
+echo "Installing neovim..."
+sudo make -s install
 
 rm -rf ~/neovim
 

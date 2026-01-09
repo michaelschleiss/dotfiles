@@ -26,8 +26,15 @@ elif [[ "$os_name" == "Linux" ]]; then
     htop \
     ninja-build \
     cmake \
-    openssh-server
+    openssh-server \
+    python3-pip \
+    python3-venv
   sudo systemctl enable --now ssh
+  # Install Rust via rustup (apt version is too old)
+  if ! command -v rustup &>/dev/null; then
+    log "Installing Rust via rustup"
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  fi
 fi
 
 # --- Ghostty terminal ---
