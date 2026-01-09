@@ -10,10 +10,20 @@ log() {
 
 os_name="$(uname -s)"
 
+# --- Homebrew (macOS) ---
+if [[ "$os_name" == "Darwin" ]]; then
+  if command -v brew &>/dev/null; then
+    log "Homebrew already installed"
+  else
+    log "Installing Homebrew"
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" >/dev/null
+  fi
+fi
+
 # --- Essential tools ---
 log "Installing essential packages"
 if [[ "$os_name" == "Darwin" ]]; then
-  brew install git curl wget pkg-config
+  brew install -q git curl wget pkg-config
 elif [[ "$os_name" == "Linux" ]]; then
   sudo apt-get update -qq
   sudo apt-get install -qq -y \
@@ -29,11 +39,11 @@ elif [[ "$os_name" == "Linux" ]]; then
     openssh-server \
     python3-pip \
     python3-venv
-  sudo systemctl enable --now ssh
+  sudo systemctl enable --now ssh -q
   # Install Rust via rustup (apt version is too old)
   if ! command -v rustup &>/dev/null; then
     log "Installing Rust via rustup"
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y -q
   fi
 fi
 
@@ -51,26 +61,23 @@ if command -v ghostty &>/dev/null; then
 else
   if [[ "$os_name" == "Darwin" ]]; then
     log "Installing Ghostty (brew cask)"
-    brew install --cask ghostty
+    brew install -q --cask ghostty
   elif [[ "$os_name" == "Linux" ]]; then
     log "Installing Ghostty (.deb from ghostty-ubuntu)"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mkasberg/ghostty-ubuntu/HEAD/install.sh)"
   fi
 fi
 
-# --- Brave browser ---
-if command -v brave-browser &>/dev/null; then
-  log "Brave already installed"
-else
-  if [[ "$os_name" == "Darwin" ]]; then
-    log "Installing Brave (brew cask)"
-    brew install --cask brave-browser
-  elif [[ "$os_name" == "Linux" ]]; then
+# --- Brave browser (Linux only, macOS has Safari) ---
+if [[ "$os_name" == "Linux" ]]; then
+  if command -v brave-browser &>/dev/null; then
+    log "Brave already installed"
+  else
     log "Installing Brave (apt)"
     sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
       https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
     echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" \
-      | sudo tee /etc/apt/sources.list.d/brave-browser-release.list
+      | sudo tee /etc/apt/sources.list.d/brave-browser-release.list >/dev/null
     sudo apt-get update -qq
     sudo apt-get install -qq -y brave-browser
   fi

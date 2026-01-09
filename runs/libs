@@ -7,10 +7,9 @@ set -euo pipefail
 # install a package via brew (mac) or apt (linux)
 # usage: install <name> [linux-name-if-different]
 install() {
-  echo "Installing $1..."
   case "$(uname -s)" in
-    Darwin) brew install "$1" ;;
-    Linux)  sudo apt-get install -qqq -y "${2:-$1}" ;;
+    Darwin) brew install -q "$1" ;;
+    Linux)  sudo apt-get install -qq -y "${2:-$1}" ;;
   esac
 }
 
