@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# general libs
+source "$(dirname "$0")/lib"
 
 # --- helpers ---
 
-# install a package via brew (mac) or apt (linux)
-# usage: install <name> [linux-name-if-different]
 install() {
   echo "Installing $1..."
   case "$(uname -s)" in
@@ -26,3 +24,6 @@ if [[ "$(uname -s)" == "Linux" ]] && command -v batcat &>/dev/null && ! command 
   mkdir -p ~/.local/bin
   ln -sf "$(which batcat)" ~/.local/bin/bat
 fi
+
+# Shell integration
+add_block_to_file "$HOME/.zsh_profile" "fzf" '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'
