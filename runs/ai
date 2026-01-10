@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
+source "$(dirname "$0")/lib"
 
 log() {
   echo "[ai] $*"
@@ -13,7 +13,6 @@ have() {
 os_name="$(uname -s)"
 arch_name="$(uname -m)"
 
-# Make user-installed tools available within this script run.
 export PATH="${HOME}/.local/bin:${PATH}"
 
 ensure_cmd() {
@@ -191,6 +190,11 @@ main() {
   install_uv
   install_codex
   install_claude_code
+
+  # Shell integration
+  add_block_to_file "$HOME/.zsh_profile" "ai-paths" 'export CLAUDE_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/claude"
+export CODEX_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/codex"'
+
   log "Done"
 }
 
