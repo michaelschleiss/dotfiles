@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+source "$(dirname "$0")/lib"
 
 log() {
   echo "[zsh] $*"
@@ -24,19 +25,7 @@ else
 fi
 
 # --- Source .zsh_profile from .zshrc ---
-ZSHRC="$HOME/.zshrc"
-SOURCE_LINE="[[ -f ~/.zsh_profile ]] && source ~/.zsh_profile"
-
-# Create .zshrc if it doesn't exist
-touch "$ZSHRC"
-
-if ! grep -Fxq "$SOURCE_LINE" "$ZSHRC"; then
-  echo "" >> "$ZSHRC"
-  echo "# Added by setup script on $(date)" >> "$ZSHRC"
-  echo "$SOURCE_LINE" >> "$ZSHRC"
-  log "Added to .zshrc: $SOURCE_LINE"
-else
-  log "Already in .zshrc: $SOURCE_LINE"
-fi
+touch "$HOME/.zshrc"
+add_block_to_file "$HOME/.zshrc" "zsh-profile" '[[ -f ~/.zsh_profile ]] && source ~/.zsh_profile'
 
 log "Done - restart terminal or run: exec zsh"
