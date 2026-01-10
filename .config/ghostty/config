@@ -2,6 +2,8 @@ font-family = "JetBrainsMono Nerd Font"
 theme = "Kanagawa Wave"
 font-size = 14
 background-opacity = 1.0
+# Allow Shift to bypass mouse reporting (needed for Cmd+Shift+Click inside tmux).
+mouse-shift-capture = false
 
 # Quick terminal (dropdown)
 keybind = global:ctrl+`=toggle_quick_terminal
