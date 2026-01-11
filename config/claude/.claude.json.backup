@@ -1,0 +1,1069 @@
+{
+  "numStartups": 260,
+  "installMethod": "global",
+  "hasSeenTasksHint": true,
+  "customApiKeyResponses": {
+    "approved": [],
+    "rejected": [
+      "RkTjOUG5KLg-XSqIiwAA"
+    ]
+  },
+  "tipsHistory": {
+    "new-user-warmup": 7,
+    "plan-mode-for-complex-tasks": 18,
+    "terminal-setup": 63,
+    "shift-enter-setup": 65,
+    "memory-command": 260,
+    "theme-command": 251,
+    "status-line": 258,
+    "stickers-command": 251,
+    "prompt-queue": 13,
+    "enter-to-steer-in-relatime": 251,
+    "todo-list": 251,
+    "# for memory": 21,
+    "install-github-app": 253,
+    "drag-and-drop-images": 253,
+    "paste-images-mac": 255,
+    "double-esc-code-restore": 255,
+    "continue": 255,
+    "shift-tab": 256,
+    "image-paste": 251,
+    "config-thinking-mode": 230,
+    "ultrathink-keyword": 256,
+    "guest-passes": 259,
+    "custom-agents": 255,
+    "permissions": 253,
+    "rename-conversation": 255,
+    "custom-commands": 255,
+    "desktop-app": 255,
+    "web-app": 255,
+    "mobile-app": 255,
+    "install-slack-app": 253,
+    "btw-side-question": 230,
+    "git-worktrees": 253,
+    "shift-enter": 253,
+    "ide-upsell-external-terminal": 223,
+    "frontend-design-plugin": 260
+  },
+  "promptQueueUseCount": 9612,
+  "showExpandedTodos": true,
+  "cachedStatsigGates": {
+    "tengu_log_1p_events": true,
+    "tengu_disable_bypass_permissions_mode": false,
+    "code_slack_app_install_banner": false,
+    "tengu_tool_pear": false,
+    "tengu_c4w_usage_limit_notifications_enabled": true,
+    "tengu_thinkback": false,
+    "tengu_sumi": true,
+    "tengu_react_vulnerability_warning": false,
+    "tengu_tool_result_persistence": false,
+    "tengu_ant_attribution_header_new": true,
+    "tengu_clawd_openfire": false,
+    "tengu_prompt_suggestion": true,
+    "tengu_year_end_2025_campaign_promo": false,
+    "tengu_streaming_tool_execution2": false
+  },
+  "cachedDynamicConfigs": {
+    "tengu_1p_event_batch_config": {
+      "scheduledDelayMillis": 5000,
+      "maxExportBatchSize": 200,
+      "maxQueueSize": 8192
+    },
+    "tengu-top-of-feed-tip": {
+      "tip": "",
+      "color": ""
+    }
+  },
+  "cachedGrowthBookFeatures": {
+    "strawberry_granite_flag": "N/A",
+    "persimmon_marble_flag": "N/A",
+    "tengu_accept_with_feedback": true,
+    "doorbell_bottle": "inherit",
+    "tengu_mcp_tool_search": true,
+    "tengu_disable_bypass_permissions_mode": false,
+    "tengu_tool_pear": false,
+    "tengu_c4w_usage_limit_notifications_enabled": true,
+    "tengu_thinkback": false,
+    "tengu_sumi": false,
+    "tengu_react_vulnerability_warning": false,
+    "tengu_ant_attribution_header_new": true,
+    "tengu_tool_result_persistence": false,
+    "tengu_pid_based_version_locking": true,
+    "tengu_prompt_suggestion": true,
+    "tengu_1p_event_batch_config": {
+      "scheduledDelayMillis": 5000,
+      "maxExportBatchSize": 200,
+      "maxQueueSize": 8192
+    },
+    "tengu_event_sampling_config": {},
+    "tengu-top-of-feed-tip": {
+      "tip": "",
+      "color": ""
+    },
+    "tengu_tool_search_unsupported_models": null,
+    "tengu_permission_explainer": false,
+    "tengu_scratch": false,
+    "tengu_log_segment_events": false,
+    "tengu_log_datadog_events": true,
+    "tengu_post_compact_survey": false,
+    "tengu_streaming_tool_execution2": false
+  },
+  "hasSeenStashHint": true,
+  "userID": "f00d314387aca310d183d299f5c0d2097315f32e64121bc5e592d1636e296a1f",
+  "firstStartTime": "2025-12-15T11:43:13.561Z",
+  "sonnet45MigrationComplete": true,
+  "opus45MigrationComplete": true,
+  "githubRepoPaths": {
+    "michaelschleiss/dotfiles": [
+      "/Users/michael/projects/dev"
+    ],
+    "michaelschleiss/mars2020-viewer": [
+      "/Users/michael/projects/mars2020-viewer"
+    ],
+    "michaelschleiss/doktorarbeit": [
+      "/Users/michael/projects/doktorarbeit/manuskript",
+      "/Users/michael/projects/doktorarbeit"
+    ],
+    "michaelschleiss/georaffer": [
+      "/Users/michael/projects/doktorarbeit/georaffer",
+      "/Users/michael/projects/georaffer"
+    ],
+    "michaelschleiss/dvlad": [
+      "/Users/michael/projects/densevlad",
+      "/Users/michael/projects/dvlad"
+    ],
+    "michaelschleiss/densevlad": [
+      "/Users/michael/projects/densevlad"
+    ],
+    "thedotmack/claude-mem": [
+      "/Users/michael/.config/claude/plugins/marketplaces/thedotmack"
+    ],
+    "michaelschleiss/german-cvl": [
+      "/Users/michael/projects/doktorarbeit/german-cvl"
+    ],
+    "pytorch/pytorch": [
+      "/Users/michael/projects/pytorch"
+    ],
+    "pimalaya/himalaya": [
+      "/Users/michael/projects/himalaya"
+    ]
+  },
+  "changelogLastFetched": 1768005658176,
+  "projects": {
+    "/Users/michael/projects/dev": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": true,
+      "projectOnboardingSeenCount": 0,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "exampleFiles": [
+        "vim-options.lua",
+        "lsp-config.lua",
+        "completion.lua",
+        "codecompanion.lua",
+        "vimtex.lua"
+      ],
+      "exampleFilesGeneratedAt": 1765798994894,
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "hasCompletedProjectOnboarding": true,
+      "lastCost": 4.440139250000001,
+      "lastAPIDuration": 1071914,
+      "lastAPIDurationWithoutRetries": 1071779,
+      "lastToolDuration": 27440,
+      "lastDuration": 2301562,
+      "lastLinesAdded": 108,
+      "lastLinesRemoved": 56,
+      "lastTotalInputTokens": 82920,
+      "lastTotalOutputTokens": 33849,
+      "lastTotalCacheCreationInputTokens": 97821,
+      "lastTotalCacheReadInputTokens": 5892226,
+      "lastTotalWebSearchRequests": 0,
+      "lastModelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 79880,
+          "outputTokens": 2933,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.09454499999999996
+        },
+        "claude-opus-4-5-20251101": {
+          "inputTokens": 3040,
+          "outputTokens": 30916,
+          "cacheReadInputTokens": 5892226,
+          "cacheCreationInputTokens": 97821,
+          "webSearchRequests": 0,
+          "costUSD": 4.34559425
+        }
+      },
+      "lastSessionId": "f3369ef4-bbfe-4c2b-81cc-03c24c2a384f"
+    },
+    "/Users/michael/projects/mars2020-viewer": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": true,
+      "projectOnboardingSeenCount": 0,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "exampleFiles": [
+        "I don't have enough information to provide a meaningful answer. You've provided:",
+        "",
+        "- No files modified by the user",
+        "- Only 2 files modified by other users (README.md and .gitignore), both of which are configuration/documentation files",
+        "",
+        "To return five filenames representing core application logic, I would need a list with at least 5 actual source code files with modification counts. Configuration files like README.md and .gitignore don't represent core application logic.",
+        "",
+        "Could you provide the complete list of modified files?"
+      ],
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "exampleFilesGeneratedAt": 1765800752559,
+      "hasCompletedProjectOnboarding": true,
+      "lastCost": 301.2290688999997,
+      "lastAPIDuration": 44867774,
+      "lastAPIDurationWithoutRetries": 44856368,
+      "lastToolDuration": 5444699,
+      "lastDuration": 81956985,
+      "lastLinesAdded": 15475,
+      "lastLinesRemoved": 917,
+      "lastTotalInputTokens": 2795391,
+      "lastTotalOutputTokens": 1965508,
+      "lastTotalCacheCreationInputTokens": 13697186,
+      "lastTotalCacheReadInputTokens": 361559739,
+      "lastTotalWebSearchRequests": 16,
+      "lastModelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 2705215,
+          "outputTokens": 118717,
+          "cacheReadInputTokens": 1815171,
+          "cacheCreationInputTokens": 136804,
+          "webSearchRequests": 0,
+          "costUSD": 3.6513221000000025
+        },
+        "claude-sonnet-4-5-20250929": {
+          "inputTokens": 15212,
+          "outputTokens": 278762,
+          "cacheReadInputTokens": 21946216,
+          "cacheCreationInputTokens": 2648117,
+          "webSearchRequests": 1,
+          "costUSD": 20.751369550000007
+        },
+        "claude-opus-4-5-20251101": {
+          "inputTokens": 74964,
+          "outputTokens": 1568029,
+          "cacheReadInputTokens": 337798352,
+          "cacheCreationInputTokens": 10912265,
+          "webSearchRequests": 15,
+          "costUSD": 276.8263772499997
+        }
+      },
+      "lastSessionId": "e73a9403-ee32-4bc9-815f-3c8234785960"
+    },
+    "/Users/michael/projects/doktorarbeit": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": false,
+      "projectOnboardingSeenCount": 0,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "exampleFiles": [
+        "mainPhD.tex",
+        "2b_datasets_overview.tex",
+        "packages.tex",
+        "introduction.tex",
+        "3e_hierarchical_localization.tex"
+      ],
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "exampleFilesGeneratedAt": 1766781634235,
+      "lastCost": 1.67455205,
+      "lastAPIDuration": 348940,
+      "lastAPIDurationWithoutRetries": 348866,
+      "lastToolDuration": 52956,
+      "lastDuration": 49644438,
+      "lastLinesAdded": 144,
+      "lastLinesRemoved": 0,
+      "lastTotalInputTokens": 13763,
+      "lastTotalOutputTokens": 12875,
+      "lastTotalCacheCreationInputTokens": 289485,
+      "lastTotalCacheReadInputTokens": 1313751,
+      "lastTotalWebSearchRequests": 0,
+      "lastModelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 13343,
+          "outputTokens": 1287,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.019778
+        },
+        "claude-sonnet-4-5-20250929": {
+          "inputTokens": 420,
+          "outputTokens": 11588,
+          "cacheReadInputTokens": 1313751,
+          "cacheCreationInputTokens": 289485,
+          "webSearchRequests": 0,
+          "costUSD": 1.6547740499999997
+        }
+      },
+      "lastSessionId": "348df9c3-1f2f-4dc4-8ced-9ed0707c8610",
+      "hasCompletedProjectOnboarding": true
+    },
+    "/Users/michael/projects": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": true,
+      "projectOnboardingSeenCount": 4,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "exampleFiles": [],
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "lastCost": 0.3939279500000002,
+      "lastAPIDuration": 173103,
+      "lastAPIDurationWithoutRetries": 173061,
+      "lastToolDuration": 24987,
+      "lastDuration": 33801602,
+      "lastLinesAdded": 0,
+      "lastLinesRemoved": 0,
+      "lastTotalInputTokens": 83548,
+      "lastTotalOutputTokens": 13049,
+      "lastTotalCacheCreationInputTokens": 96483,
+      "lastTotalCacheReadInputTokens": 1145312,
+      "lastTotalWebSearchRequests": 1,
+      "lastModelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 83548,
+          "outputTokens": 13049,
+          "cacheReadInputTokens": 1145312,
+          "cacheCreationInputTokens": 96483,
+          "webSearchRequests": 1,
+          "costUSD": 0.3939279500000002
+        }
+      },
+      "lastSessionId": "78e1c1be-65a7-4ed7-90ce-832289540146",
+      "hasCompletedProjectOnboarding": true
+    },
+    "/Users/michael/projects/georaffer": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": false,
+      "projectOnboardingSeenCount": 0,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "exampleFiles": [
+        "conversion.py",
+        "pipeline.py",
+        "laz.py",
+        "metadata.py",
+        "provenance.py"
+      ],
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "exampleFilesGeneratedAt": 1766183527112,
+      "hasCompletedProjectOnboarding": true,
+      "lastCost": 14.669009800000003,
+      "lastAPIDuration": 2958256,
+      "lastAPIDurationWithoutRetries": 2953557,
+      "lastToolDuration": 1301377,
+      "lastDuration": 20052283,
+      "lastLinesAdded": 133,
+      "lastLinesRemoved": 178,
+      "lastTotalInputTokens": 117083,
+      "lastTotalOutputTokens": 176980,
+      "lastTotalCacheCreationInputTokens": 1641830,
+      "lastTotalCacheReadInputTokens": 13175543,
+      "lastTotalWebSearchRequests": 1,
+      "lastModelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 101585,
+          "outputTokens": 75063,
+          "cacheReadInputTokens": 4904973,
+          "cacheCreationInputTokens": 666105,
+          "webSearchRequests": 0,
+          "costUSD": 1.8000285499999993
+        },
+        "claude-opus-4-5-20251101": {
+          "inputTokens": 15498,
+          "outputTokens": 101917,
+          "cacheReadInputTokens": 8270570,
+          "cacheCreationInputTokens": 975725,
+          "webSearchRequests": 1,
+          "costUSD": 12.868981249999997
+        }
+      },
+      "lastSessionId": "54668b18-04c4-456f-b0fb-6cdc6d7cfbb2"
+    },
+    "/Users/michael/projects/dvlad": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": false,
+      "projectOnboardingSeenCount": 6,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "exampleFiles": [
+        "densevlad.py",
+        "test_torii15_pre_pca_vlad.py",
+        "image.py",
+        "README.md",
+        "test_torii15_stage_parity.py"
+      ],
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "exampleFilesGeneratedAt": 1766252600899,
+      "lastCost": 56.83646944999997,
+      "lastAPIDuration": 10429150,
+      "lastAPIDurationWithoutRetries": 10428427,
+      "lastToolDuration": 11456450,
+      "lastDuration": 56945139,
+      "lastLinesAdded": 1856,
+      "lastLinesRemoved": 256,
+      "lastTotalInputTokens": 1004415,
+      "lastTotalOutputTokens": 467257,
+      "lastTotalCacheCreationInputTokens": 5650427,
+      "lastTotalCacheReadInputTokens": 36961790,
+      "lastTotalWebSearchRequests": 86,
+      "lastModelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 746937,
+          "outputTokens": 89037,
+          "cacheReadInputTokens": 5943559,
+          "cacheCreationInputTokens": 739987,
+          "webSearchRequests": 0,
+          "costUSD": 2.711461649999999
+        },
+        "claude-opus-4-5-20251101": {
+          "inputTokens": 194355,
+          "outputTokens": 289449,
+          "cacheReadInputTokens": 25623710,
+          "cacheCreationInputTokens": 4276685,
+          "webSearchRequests": 86,
+          "costUSD": 48.60913624999997
+        },
+        "claude-sonnet-4-5-20250929": {
+          "inputTokens": 63123,
+          "outputTokens": 88771,
+          "cacheReadInputTokens": 5394521,
+          "cacheCreationInputTokens": 633755,
+          "webSearchRequests": 0,
+          "costUSD": 5.515871549999997
+        }
+      },
+      "lastSessionId": "23d0915b-f17c-45b3-ad7d-df2577291b2c"
+    },
+    "/Users/michael/projects/densevlad": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": false,
+      "projectOnboardingSeenCount": 1,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "exampleFiles": [
+        "densevlad.py",
+        "image.py",
+        "test_torii15_stage_parity.py",
+        "test_torii15_pre_pca_vlad.py",
+        "pyproject.toml"
+      ],
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "exampleFilesGeneratedAt": 1766309547434,
+      "lastCost": 0.07264965000000001,
+      "lastAPIDuration": 34439,
+      "lastAPIDurationWithoutRetries": 34436,
+      "lastToolDuration": 0,
+      "lastDuration": 261007,
+      "lastLinesAdded": 0,
+      "lastLinesRemoved": 0,
+      "lastTotalInputTokens": 16223,
+      "lastTotalOutputTokens": 1520,
+      "lastTotalCacheCreationInputTokens": 7115,
+      "lastTotalCacheReadInputTokens": 31978,
+      "lastTotalWebSearchRequests": 0,
+      "lastModelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 15207,
+          "outputTokens": 468,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.017547
+        },
+        "claude-sonnet-4-5-20250929": {
+          "inputTokens": 1016,
+          "outputTokens": 1052,
+          "cacheReadInputTokens": 31978,
+          "cacheCreationInputTokens": 7115,
+          "webSearchRequests": 0,
+          "costUSD": 0.05510265
+        }
+      },
+      "lastSessionId": "468c5cf3-c38f-43d0-baea-8335091d922f"
+    },
+    "/Users/michael": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": false,
+      "projectOnboardingSeenCount": 4,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "exampleFiles": [],
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "lastCost": 11.072799299999994,
+      "lastAPIDuration": 2144342,
+      "lastAPIDurationWithoutRetries": 2143113,
+      "lastToolDuration": 956259,
+      "lastDuration": 8277113,
+      "lastLinesAdded": 0,
+      "lastLinesRemoved": 0,
+      "lastTotalInputTokens": 400135,
+      "lastTotalOutputTokens": 70062,
+      "lastTotalCacheCreationInputTokens": 1520675,
+      "lastTotalCacheReadInputTokens": 8841414,
+      "lastTotalWebSearchRequests": 46,
+      "lastModelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 392887,
+          "outputTokens": 5738,
+          "cacheReadInputTokens": 37512,
+          "cacheCreationInputTokens": 69237,
+          "webSearchRequests": 0,
+          "costUSD": 0.5118744500000001
+        },
+        "claude-sonnet-4-5-20250929": {
+          "inputTokens": 7248,
+          "outputTokens": 64324,
+          "cacheReadInputTokens": 8803902,
+          "cacheCreationInputTokens": 1451438,
+          "webSearchRequests": 46,
+          "costUSD": 10.56092485
+        }
+      },
+      "lastSessionId": "5e470f39-a700-490a-a4d0-bbfc55028b37",
+      "hasCompletedProjectOnboarding": true,
+      "disabledMcpServers": [
+        "plugin:github:github"
+      ]
+    },
+    "/Users/michael/projects/doktorarbeit/pygeon": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": false,
+      "projectOnboardingSeenCount": 0,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "exampleFiles": [
+        "orthophoto.py",
+        "footprint_strategy.py",
+        "trajectory_filter.py",
+        "csv_readers.py",
+        "vgl_iterator.py"
+      ],
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "exampleFilesGeneratedAt": 1767477299901,
+      "lastCost": 16.319808000000002,
+      "lastAPIDuration": 1723904,
+      "lastAPIDurationWithoutRetries": 1723653,
+      "lastToolDuration": 115715,
+      "lastDuration": 36369956,
+      "lastLinesAdded": 227,
+      "lastLinesRemoved": 167,
+      "lastTotalInputTokens": 78082,
+      "lastTotalOutputTokens": 68883,
+      "lastTotalCacheCreationInputTokens": 940158,
+      "lastTotalCacheReadInputTokens": 17375319,
+      "lastTotalWebSearchRequests": 0,
+      "lastModelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 71976,
+          "outputTokens": 3421,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.08908099999999998
+        },
+        "claude-opus-4-5-20251101": {
+          "inputTokens": 6106,
+          "outputTokens": 65462,
+          "cacheReadInputTokens": 17375319,
+          "cacheCreationInputTokens": 940158,
+          "webSearchRequests": 0,
+          "costUSD": 16.230726999999998
+        }
+      },
+      "lastSessionId": "14d18839-55c6-41cc-91db-274d3be0cf69",
+      "disabledMcpServers": [
+        "plugin:gitlab:gitlab"
+      ]
+    },
+    "/Users/michael/projects/doktorarbeit/localmatching_bench": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": false,
+      "projectOnboardingSeenCount": 0,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "exampleFiles": [
+        "aerial_benchmark.py",
+        "pygeon.py",
+        "core.py",
+        "evaluators.py",
+        "visualization.py"
+      ],
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "exampleFilesGeneratedAt": 1766874173981,
+      "lastCost": 65.42604549999996,
+      "lastAPIDuration": 8492516,
+      "lastAPIDurationWithoutRetries": 8491149,
+      "lastToolDuration": 2596188,
+      "lastDuration": 91844514,
+      "lastLinesAdded": 1561,
+      "lastLinesRemoved": 490,
+      "lastTotalInputTokens": 419746,
+      "lastTotalOutputTokens": 268788,
+      "lastTotalCacheCreationInputTokens": 3631724,
+      "lastTotalCacheReadInputTokens": 71569289,
+      "lastTotalWebSearchRequests": 5,
+      "lastModelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 398611,
+          "outputTokens": 16543,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.4813259999999997
+        },
+        "claude-opus-4-5-20251101": {
+          "inputTokens": 21135,
+          "outputTokens": 252245,
+          "cacheReadInputTokens": 71569289,
+          "cacheCreationInputTokens": 3631724,
+          "webSearchRequests": 5,
+          "costUSD": 64.94471949999998
+        }
+      },
+      "lastSessionId": "9c57a1e2-b238-4cc1-bedd-ed27b6502657"
+    },
+    "/Users/michael/projects/doktorarbeit/georaffer": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": false,
+      "projectOnboardingSeenCount": 0,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "exampleFiles": [
+        "pipeline.py",
+        "conversion.py",
+        "cli.py",
+        "workers.py",
+        "tiles.py"
+      ],
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "exampleFilesGeneratedAt": 1766910961595,
+      "hasCompletedProjectOnboarding": true,
+      "lastCost": 35.505732500000036,
+      "lastAPIDuration": 5888239,
+      "lastAPIDurationWithoutRetries": 5887785,
+      "lastToolDuration": 4867615,
+      "lastDuration": 15298239,
+      "lastLinesAdded": 53,
+      "lastLinesRemoved": 66,
+      "lastTotalInputTokens": 1193643,
+      "lastTotalOutputTokens": 231034,
+      "lastTotalCacheCreationInputTokens": 2719870,
+      "lastTotalCacheReadInputTokens": 19366832,
+      "lastTotalWebSearchRequests": 108,
+      "lastModelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 904574,
+          "outputTokens": 19132,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 1.0002340000000003
+        },
+        "claude-opus-4-5-20251101": {
+          "inputTokens": 289069,
+          "outputTokens": 211902,
+          "cacheReadInputTokens": 19366832,
+          "cacheCreationInputTokens": 2719870,
+          "webSearchRequests": 108,
+          "costUSD": 34.50549850000004
+        }
+      },
+      "lastSessionId": "fb64f7f1-e5a9-47ce-bcf6-a45646e82dd6"
+    },
+    "/Users/michael/projects/doktorarbeit/german-cvl": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": true,
+      "projectOnboardingSeenCount": 0,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "exampleFiles": [
+        "show_sequence.py",
+        "fourseasons.py",
+        "verify_poses.py",
+        "common.py",
+        "extract_poses.py"
+      ],
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "lastCost": 0.27042554999999996,
+      "lastAPIDuration": 87180,
+      "lastAPIDurationWithoutRetries": 81525,
+      "lastToolDuration": 66,
+      "lastDuration": 67294884,
+      "lastLinesAdded": 0,
+      "lastLinesRemoved": 0,
+      "lastTotalInputTokens": 35459,
+      "lastTotalOutputTokens": 5075,
+      "lastTotalCacheCreationInputTokens": 152229,
+      "lastTotalCacheReadInputTokens": 193053,
+      "lastTotalWebSearchRequests": 0,
+      "lastModelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 35459,
+          "outputTokens": 5075,
+          "cacheReadInputTokens": 193053,
+          "cacheCreationInputTokens": 152229,
+          "webSearchRequests": 0,
+          "costUSD": 0.27042554999999996
+        }
+      },
+      "lastSessionId": "a8fdff99-52c5-4068-bef9-943ddab44826",
+      "hasCompletedProjectOnboarding": true,
+      "exampleFilesGeneratedAt": 1767999992592,
+      "disabledMcpServers": [
+        "plugin:github:github"
+      ]
+    },
+    "/Users/michael/projects/doktorarbeit/orthographic_geometry": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": false,
+      "projectOnboardingSeenCount": 0,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "exampleFiles": [
+        "geometry.py",
+        "synthetic.py",
+        "__init__.py",
+        "README.md",
+        "orthographic_geometry.py"
+      ],
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "exampleFilesGeneratedAt": 1767089310525
+    },
+    "/Users/michael/projects/doktorarbeit/manuskript": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": false,
+      "projectOnboardingSeenCount": 0,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "exampleFiles": [
+        "mainPhD.tex",
+        "2b_datasets_overview.tex",
+        "packages.tex",
+        "introduction.tex",
+        "3e_hierarchical_localization.tex"
+      ],
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "exampleFilesGeneratedAt": 1767389847727,
+      "hasCompletedProjectOnboarding": true,
+      "lastCost": 0.7210175000000001,
+      "lastAPIDuration": 189875,
+      "lastAPIDurationWithoutRetries": 189858,
+      "lastToolDuration": 54291,
+      "lastDuration": 1378791,
+      "lastLinesAdded": 63,
+      "lastLinesRemoved": 0,
+      "lastTotalInputTokens": 47883,
+      "lastTotalOutputTokens": 6940,
+      "lastTotalCacheCreationInputTokens": 47832,
+      "lastTotalCacheReadInputTokens": 389793,
+      "lastTotalWebSearchRequests": 1,
+      "lastModelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 42606,
+          "outputTokens": 1266,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.04893600000000001
+        },
+        "claude-opus-4-5-20251101": {
+          "inputTokens": 5277,
+          "outputTokens": 5674,
+          "cacheReadInputTokens": 389793,
+          "cacheCreationInputTokens": 47832,
+          "webSearchRequests": 1,
+          "costUSD": 0.6720815
+        }
+      },
+      "lastSessionId": "01024d2b-d959-477a-9e82-1e5035461be5"
+    },
+    "/Users/michael/projects/pytorch": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": true,
+      "projectOnboardingSeenCount": 0,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "exampleFiles": [
+        "pallas.py",
+        "test_torchinductor.py",
+        "config.py",
+        "builtin.py",
+        "guards.py"
+      ],
+      "exampleFilesGeneratedAt": 1768029120868,
+      "hasCompletedProjectOnboarding": true,
+      "lastCost": 0.018654000000000004,
+      "lastAPIDuration": 3238,
+      "lastAPIDurationWithoutRetries": 3236,
+      "lastToolDuration": 0,
+      "lastDuration": 4825,
+      "lastLinesAdded": 0,
+      "lastLinesRemoved": 0,
+      "lastTotalInputTokens": 324,
+      "lastTotalOutputTokens": 152,
+      "lastTotalCacheCreationInputTokens": 14056,
+      "lastTotalCacheReadInputTokens": 0,
+      "lastTotalWebSearchRequests": 0,
+      "lastModelUsage": {
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 324,
+          "outputTokens": 152,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 14056,
+          "webSearchRequests": 0,
+          "costUSD": 0.018654000000000004
+        }
+      },
+      "lastSessionId": "e935d2b2-e65b-4a5e-b73f-9590277b78e9"
+    },
+    "/Users/michael/projects/himalaya": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": true,
+      "projectOnboardingSeenCount": 0,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "reactVulnerabilityCache": {
+        "detected": false,
+        "package": null,
+        "packageName": null,
+        "version": null,
+        "packageManager": null
+      },
+      "exampleFiles": [
+        "main.rs",
+        "cli.rs",
+        "editor.rs",
+        "imap.rs",
+        "mod.rs"
+      ],
+      "exampleFilesGeneratedAt": 1768029646668
+    }
+  },
+  "officialMarketplaceAutoInstallAttempted": true,
+  "officialMarketplaceAutoInstalled": true,
+  "claudeCodeFirstTokenDate": "2025-07-23T11:00:33.846848Z",
+  "hasCompletedOnboarding": true,
+  "lastOnboardingVersion": "2.0.69",
+  "lastReleaseNotesSeen": "2.1.3",
+  "hasShownOpus45Notice": {
+    "c3608b81-6c63-40ff-8f40-96e761fc5828": true
+  },
+  "s1mAccessCache": {
+    "c3608b81-6c63-40ff-8f40-96e761fc5828": {
+      "hasAccess": false,
+      "hasAccessNotAsDefault": false,
+      "timestamp": 1768059777411
+    }
+  },
+  "passesEligibilityCache": {
+    "c3608b81-6c63-40ff-8f40-96e761fc5828": {
+      "eligible": true,
+      "referral_code_details": {
+        "code": "rgfoJefPrw",
+        "campaign": "claude_code_guest_pass",
+        "referral_link": "https://claude.ai/referral/rgfoJefPrw"
+      },
+      "timestamp": 1768059776171
+    }
+  },
+  "passesUpsellSeenCount": 4,
+  "lastPlanModeUse": 1768061439409,
+  "feedbackSurveyState": {
+    "lastShownTime": 1767635187765
+  },
+  "thinkingMigrationComplete": true,
+  "bypassPermissionsModeAccepted": true,
+  "shiftEnterKeyBindingInstalled": true,
+  "mcpServers": {
+    "paper-search": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/Users/michael/mcp-servers/paper-search-mcp",
+        "-m",
+        "paper_search_mcp.server"
+      ],
+      "env": {}
+    }
+  },
+  "oauthAccount": {
+    "accountUuid": "d7e45228-27a7-4342-a0fa-3596a41e732c",
+    "emailAddress": "michaelschleiss87@gmail.com",
+    "organizationUuid": "c3608b81-6c63-40ff-8f40-96e761fc5828",
+    "hasExtraUsageEnabled": true,
+    "displayName": "Michael",
+    "organizationRole": "admin",
+    "workspaceRole": null,
+    "organizationName": "michaelschleiss87@gmail.com's Organization"
+  },
+  "groveConfigCache": {
+    "d7e45228-27a7-4342-a0fa-3596a41e732c": {
+      "grove_enabled": true,
+      "timestamp": 1768054351229
+    }
+  }
+}

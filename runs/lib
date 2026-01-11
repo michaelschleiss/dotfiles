@@ -1,0 +1,44 @@
+#!/bin/bash
+# Shared helpers for runs/ scripts
+
+# Add a block to a file if not already present (idempotent)
+# Usage: add_block_to_file <file> <marker_name> <content>
+# Example: add_block_to_file ~/.zsh_profile "my-tool" "alias foo='bar'"
+add_block_to_file() {
+    local file="$1"
+    local name="$2"
+    local content="$3"
+    local marker="# >>> $name >>>"
+    local marker_end="# <<< $name <<<"
+
+    if grep -q "$marker" "$file" 2>/dev/null; then
+        echo "✓ $name already in $file"
+        return 0
+    fi
+
+    echo "📝 Adding $name to $file..."
+    cat >> "$file" <<EOF
+
+$marker
+$content
+$marker_end
+EOF
+    echo "✓ Added $name"
+}
+
+# Remove a block from a file by marker name
+# Usage: remove_block_from_file <file> <marker_name>
+remove_block_from_file() {
+    local file="$1"
+    local name="$2"
+    local marker="# >>> $name >>>"
+    local marker_end="# <<< $name <<<"
+
+    if ! grep -q "$marker" "$file" 2>/dev/null; then
+        return 0
+    fi
+
+    echo "🗑  Removing $name from $file..."
+    sed -i '' "/$marker/,/$marker_end/d" "$file"
+    echo "✓ Removed $name"
+}
