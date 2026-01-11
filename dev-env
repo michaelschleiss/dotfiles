@@ -36,7 +36,7 @@ copy_dir() {
 
   for dir in "$from"/*/; do
     name=$(basename "$dir")
-    if [[ "$name" == "claude" || "$name" == "codex" ]]; then
+    if [[ "$name" == "claude" || "$name" == "codex" || "$name" == "gh" ]]; then
       execute rsync -a "$dir" "$to/$name/"
     else
       execute rsync -a --delete "$dir" "$to/$name/"
@@ -52,8 +52,8 @@ copy_file() {
   execute cp $from $to/$name
 }
 
-copy_dir .config  ${XDG_CONFIG_HOME:-$HOME/.config}
-copy_dir .local  ${XDG_HOME:-$HOME/.local}
+copy_dir config  ${XDG_CONFIG_HOME:-$HOME/.config}
+copy_dir local   ${XDG_HOME:-$HOME/.local}
 copy_file env/.fdignore $HOME
 
 log "Configuring git to use global ignore"
