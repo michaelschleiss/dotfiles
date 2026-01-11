@@ -23,7 +23,9 @@ fi
 # --- Essential tools ---
 log "Installing essential packages"
 if [[ "$os_name" == "Darwin" ]]; then
-  brew install -q git curl wget pkg-config
+  brew install -q git curl wget pkg-config dua-cli
+  brew install -q --cask nikitabobko/tap/aerospace
+  brew install -q --cask xquartz
 elif [[ "$os_name" == "Linux" ]]; then
   sudo apt-get update -qq
   sudo apt-get install -qq -y \
@@ -44,6 +46,11 @@ elif [[ "$os_name" == "Linux" ]]; then
   if ! command -v rustup &>/dev/null; then
     log "Installing Rust via rustup"
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y -q
+  fi
+  # Install dua-cli via cargo (not in apt)
+  if ! command -v dua &>/dev/null; then
+    log "Installing dua-cli"
+    "$HOME/.cargo/bin/cargo" install dua-cli -q
   fi
 fi
 
