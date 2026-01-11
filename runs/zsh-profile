@@ -5,6 +5,10 @@ source "$(dirname "$0")/lib"
 PROFILE="$HOME/.zsh_profile"
 touch "$PROFILE"
 
+# Secrets (API keys, tokens - file must be created manually)
+add_block_to_file "$PROFILE" "secrets" '# API keys, tokens (chmod 600 ~/.secrets)
+[[ -f ~/.secrets ]] && source ~/.secrets'
+
 # PATH (core - needed by all other scripts)
 add_block_to_file "$PROFILE" "path" 'export PATH="$HOME/.local/bin:$HOME/.local/scripts:$PATH"'
 
@@ -14,3 +18,6 @@ alias rsync="rsync -ahr --partial --partial-dir=/tmp/.rsync-partial --info=progr
 alias cat='bat --paging=never'
 EOF
 add_block_to_file "$PROFILE" "aliases" "$ALIASES"
+
+# direnv hook
+add_block_to_file "$PROFILE" "direnv" 'eval "$(direnv hook zsh)"'

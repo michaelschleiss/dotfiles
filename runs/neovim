@@ -52,6 +52,7 @@ add_block_to_file "$HOME/.zsh_profile" "editor" 'export EDITOR=nvim
 export VISUAL=nvim'
 
 read -r -d '' ALIASES << 'EOF' || true
+alias vim='nvim'
 alias inv='nvim $(fd | fzf -m --preview="bat --color=always {}")'
 alias ginv='nvim $(fd . ~ | fzf -m --preview="bat --color=always {}")'
 EOF

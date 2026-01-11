@@ -37,6 +37,18 @@ elif [[ "$os_name" == "Linux" ]]; then
   fi
 fi
 
+# --- direnv (per-directory env vars) ---
+if command -v direnv &>/dev/null; then
+  log "direnv already installed"
+else
+  log "Installing direnv"
+  if [[ "$os_name" == "Darwin" ]]; then
+    brew install direnv
+  elif [[ "$os_name" == "Linux" ]]; then
+    sudo apt-get install -qq -y direnv
+  fi
+fi
+
 # --- Pixi (fast package manager for Python/ML) ---
 if command -v pixi &>/dev/null; then
   log "Pixi already installed"
