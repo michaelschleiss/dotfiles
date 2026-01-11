@@ -180,7 +180,15 @@ main() {
   add_block_to_file "$HOME/.zsh_profile" "ai-paths" 'export CLAUDE_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/claude"
 export CODEX_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/codex"'
 
-  add_block_to_file "$HOME/.zsh_profile" "codex-completion" 'eval "$(codex completion zsh)"'
+  add_block_to_file "$HOME/.zshrc" "codex-completion" 'if [[ -o interactive ]] && command -v codex >/dev/null 2>&1; then
+  if ! whence -w compdef >/dev/null 2>&1; then
+    autoload -Uz compinit
+    compinit -i
+  fi
+  if whence -w compdef >/dev/null 2>&1; then
+    eval "$(codex completion zsh)"
+  fi
+fi'
 
   log "Done"
 }

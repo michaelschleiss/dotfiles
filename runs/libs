@@ -18,6 +18,12 @@ install fd fd-find
 install fzf
 install bat
 
+# tree-sitter CLI (needed for nvim-treesitter)
+case "$(uname -s)" in
+  Darwin) brew install -q tree-sitter ;;
+  Linux)  cargo install -q tree-sitter-cli ;;
+esac
+
 # On Ubuntu, bat binary is called 'batcat' - create symlink
 if [[ "$(uname -s)" == "Linux" ]] && command -v batcat &>/dev/null && ! command -v bat &>/dev/null; then
   mkdir -p ~/.local/bin
