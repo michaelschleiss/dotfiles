@@ -28,4 +28,14 @@ fi
 touch "$HOME/.zshrc"
 add_block_to_file "$HOME/.zshrc" "zsh-profile" '[[ -f ~/.zsh_profile ]] && source ~/.zsh_profile'
 
+# --- Completion config ---
+read -r -d '' ZSH_COMPLETION << 'EOF' || true
+zmodload zsh/complist
+zstyle ':completion:*' menu select
+zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' 'r:|[._-]=* r:|=*'
+autoload -Uz compinit && compinit
+EOF
+add_block_to_file "$HOME/.zshrc" "zsh-completion" "$ZSH_COMPLETION"
+
 log "Done - restart terminal or run: exec zsh"
