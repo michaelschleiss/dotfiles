@@ -52,4 +52,8 @@ autoload -Uz compinit && compinit
 EOF
 add_block_to_file "$HOME/.zshrc" "zsh-completion" "$ZSH_COMPLETION"
 
+# --- Keybindings ---
+add_block_to_file "$HOME/.zshrc" "zsh-keybindings" '# Ctrl+g: fuzzy cd into projects
+bindkey -s "^g" "cd \"\$(find ~/projects -type d -maxdepth 2 | fzf)\"\n"'
+
 log "Done - restart terminal or run: exec zsh"
