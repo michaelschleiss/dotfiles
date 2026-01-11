@@ -1,0 +1,7 @@
+language_backend: LSP
+gui_log_window: false
+web_dashboard: false
+web_dashboard_open_on_launch: false
+log_level: 20
+tool_timeout: 240
+projects: []
