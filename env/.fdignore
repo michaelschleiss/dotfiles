@@ -1,7 +1,16 @@
+# macOS
 Library/
 Applications/
 Public/
 .Trash/
+Movies/
+Music/
+
+# Linux
+snap/
+.local/share/Trash/
+
+# Common
 .cache/
 .config/
 .npm/
@@ -9,6 +18,13 @@ Public/
 .rustup/
 .rbenv/
 .pyenv/
+.pixi/
 .local/
+.ssh/
+.gnupg/
 node_modules/
 .git/
+.venv/
+venv/
+__pycache__/
+target/
