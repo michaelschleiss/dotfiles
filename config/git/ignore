@@ -1,4 +1,4 @@
-# Claude Code settings
+# AI tools
 **/.claude/settings.local.json
 
 # OS files
@@ -34,6 +34,7 @@ Temporary Items
 *.swo
 *~
 .netrwhist
+.luarc.json
 Session.vim
 tags
 [._]*.un~
@@ -42,6 +43,7 @@ tags
 .env
 .env.local
 .env.*.local
+.secrets
 
 # Python (general)
 __pycache__/

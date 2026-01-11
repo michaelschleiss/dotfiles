@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+source "$(dirname "$0")/lib"
 
 log() {
   echo "[zsh] $*"
@@ -24,19 +25,35 @@ else
 fi
 
 # --- Source .zsh_profile from .zshrc ---
-ZSHRC="$HOME/.zshrc"
-SOURCE_LINE="[[ -f ~/.zsh_profile ]] && source ~/.zsh_profile"
+touch "$HOME/.zshrc"
+add_block_to_file "$HOME/.zshrc" "zsh-profile" '[[ -f ~/.zsh_profile ]] && source ~/.zsh_profile'
 
-# Create .zshrc if it doesn't exist
-touch "$ZSHRC"
+# --- History settings ---
+read -r -d '' ZSH_HISTORY << 'EOF' || true
+HISTFILE=~/.zsh_history
+HISTSIZE=100000
+SAVEHIST=900000
+setopt INC_APPEND_HISTORY
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt HIST_VERIFY
+setopt EXTENDED_HISTORY
+setopt HIST_IGNORE_SPACE
+EOF
+add_block_to_file "$HOME/.zshrc" "zsh-history" "$ZSH_HISTORY"
 
-if ! grep -Fxq "$SOURCE_LINE" "$ZSHRC"; then
-  echo "" >> "$ZSHRC"
-  echo "# Added by setup script on $(date)" >> "$ZSHRC"
-  echo "$SOURCE_LINE" >> "$ZSHRC"
-  log "Added to .zshrc: $SOURCE_LINE"
-else
-  log "Already in .zshrc: $SOURCE_LINE"
-fi
+# --- Completion config ---
+read -r -d '' ZSH_COMPLETION << 'EOF' || true
+zmodload zsh/complist
+zstyle ':completion:*' menu select
+zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' 'r:|[._-]=* r:|=*'
+autoload -Uz compinit && compinit
+EOF
+add_block_to_file "$HOME/.zshrc" "zsh-completion" "$ZSH_COMPLETION"
+
+# --- Keybindings ---
+add_block_to_file "$HOME/.zshrc" "zsh-keybindings" '# Ctrl+g: fuzzy cd into projects
+bindkey -s "^g" "cd \"\$(find ~/projects -type d -maxdepth 2 | fzf)\"\n"'
 
 log "Done - restart terminal or run: exec zsh"

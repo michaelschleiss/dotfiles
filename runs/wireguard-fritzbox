@@ -1,0 +1,58 @@
+#!/bin/bash
+# WireGuard FritzBox VPN - Complete setup for macOS
+
+set -e
+source "$(dirname "$0")/lib"
+
+PROFILE="$HOME/.zsh_profile"
+
+FRITZBOX_FUNC='fritzbox() {
+    case "$1" in
+        on)  sudo wg-quick up fritzbox ;;
+        off) sudo wg-quick down fritzbox ;;
+        status) sudo wg show ;;
+        *) echo "Usage: fritzbox {on|off|status}"; return 1 ;;
+    esac
+}'
+
+echo "🔧 Setting up WireGuard FritzBox VPN..."
+
+# Install WireGuard if needed
+if ! command -v wg &> /dev/null; then
+    echo "📦 Installing WireGuard..."
+    brew install wireguard-tools
+else
+    echo "✓ WireGuard already installed"
+fi
+
+# Create config directory
+sudo mkdir -p /opt/homebrew/etc/wireguard
+
+# Write config (embedded)
+echo "📝 Creating FritzBox config..."
+sudo tee /opt/homebrew/etc/wireguard/fritzbox.conf > /dev/null <<'EOF'
+[Interface]
+PrivateKey = gCwkkb7shwns8C3CjOWpbBRvGJSBymj/AMEHVIsjHFY=
+Address = 192.168.178.201/24,fdc3:c1d2:3ad9::201/64
+DNS = 192.168.178.1,fdc3:c1d2:3ad9::7642:7fff:fe19:aac7
+DNS = fritz.box
+
+[Peer]
+PublicKey = imkHkIpfZlzgCH7gOuPm74U5P0GW1fSC6s3tUGYc0jw=
+PresharedKey = dmh8PxigT1ePZ0AJCxHwVoScFP6pVCutObADsNKUjAs=
+AllowedIPs = 192.168.178.0/24,0.0.0.0/0,fdc3:c1d2:3ad9::/64,::/0
+Endpoint = 5y7ifvlz9xdy3mwv.myfritz.net:57889
+PersistentKeepalive = 25
+EOF
+
+sudo chmod 600 /opt/homebrew/etc/wireguard/fritzbox.conf
+
+# Add shell function
+add_block_to_file "$PROFILE" "wireguard-fritzbox" "$FRITZBOX_FUNC"
+
+echo ""
+echo "✅ Setup complete! Run: source ~/.zsh_profile"
+echo ""
+echo "Usage:  fritzbox on     - Connect"
+echo "        fritzbox off    - Disconnect"
+echo "        fritzbox status - Check status"

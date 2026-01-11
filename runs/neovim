@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+source "$(dirname "$0")/lib"
 
 rm -rf ~/neovim
 echo "Cloning neovim repository..."
@@ -35,7 +36,7 @@ elif [[ "$os_name" == "Linux" ]]; then
   ln -sf $(which fdfind) ~/.local/bin/fd
   cores=$(nproc)
 else
-  echo "Unknown OS: $os_name" > $2
+  echo "Unknown OS: $os_name" >&2
   exit 1
 fi
 
@@ -46,7 +47,13 @@ sudo make -s install
 
 rm -rf ~/neovim
 
-# Install some post dependencies
+# Shell integration
+add_block_to_file "$HOME/.zsh_profile" "editor" 'export EDITOR=nvim
+export VISUAL=nvim'
 
-
-
+read -r -d '' ALIASES << 'EOF' || true
+alias vim='nvim'
+alias inv='nvim $(fd | fzf -m --preview="bat --color=always {}")'
+alias ginv='nvim $(fd . ~ | fzf -m --preview="bat --color=always {}")'
+EOF
+add_block_to_file "$HOME/.zsh_profile" "nvim-aliases" "$ALIASES"
