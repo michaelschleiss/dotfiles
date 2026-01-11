@@ -1,5 +1,6 @@
-# Claude Code settings
+# AI tools
 **/.claude/settings.local.json
+**/.serena/
 
 # OS files
 .DS_Store
@@ -34,6 +35,7 @@ Temporary Items
 *.swo
 *~
 .netrwhist
+.luarc.json
 Session.vim
 tags
 [._]*.un~
