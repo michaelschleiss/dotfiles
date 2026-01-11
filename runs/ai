@@ -159,30 +159,15 @@ install_claude_code() {
     return 0
   fi
 
-  if ! have npm; then
-    if [[ "$os_name" == "Darwin" ]] && have brew; then
-      log "Installing Node.js (Homebrew)"
-      brew install node
-    elif [[ "$os_name" == "Linux" ]] && have apt-get; then
-      log "Installing Node.js + npm (apt)"
-      sudo apt-get update
-      sudo apt-get install -y nodejs npm
-    else
-      echo "npm is required to install Claude Code. Install Node.js/npm and re-run." >&2
-      return 1
-    fi
-  fi
-
-  mkdir -p "${HOME}/.local"
-  log "Installing Claude Code (npm, user prefix: ~/.local)"
-  npm install -g --prefix "${HOME}/.local" @anthropic-ai/claude-code
+  log "Installing Claude Code"
+  curl -fsSL https://claude.ai/install.sh | bash
 
   if have claude; then
     log "Installed claude: $(claude --version 2>/dev/null | head -n 1 || echo ok)"
     return 0
   fi
 
-  echo "Claude Code installed but 'claude' is not on PATH; ensure ~/.local/bin is in PATH." >&2
+  echo "Claude Code installation failed" >&2
   return 1
 }
 

@@ -9,8 +9,16 @@ touch "$PROFILE"
 add_block_to_file "$PROFILE" "secrets" '# API keys, tokens (chmod 600 ~/.secrets)
 [[ -f ~/.secrets ]] && source ~/.secrets'
 
+# XDG base directories
+read -r -d '' XDG_DIRS << 'EOF' || true
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CACHE_HOME="$HOME/.cache"
+EOF
+add_block_to_file "$PROFILE" "xdg" "$XDG_DIRS"
+
 # PATH (core - needed by all other scripts)
-add_block_to_file "$PROFILE" "path" 'export PATH="$HOME/.local/bin:$HOME/.local/scripts:$PATH"'
+add_block_to_file "$PROFILE" "path" 'export PATH="$HOME/.pixi/bin:$HOME/.local/bin:$HOME/.local/scripts:$PATH"'
 
 # General aliases
 read -r -d '' ALIASES << 'EOF' || true
