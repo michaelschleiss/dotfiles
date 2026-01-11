@@ -28,6 +28,20 @@ fi
 touch "$HOME/.zshrc"
 add_block_to_file "$HOME/.zshrc" "zsh-profile" '[[ -f ~/.zsh_profile ]] && source ~/.zsh_profile'
 
+# --- History settings ---
+read -r -d '' ZSH_HISTORY << 'EOF' || true
+HISTFILE=~/.zsh_history
+HISTSIZE=100000
+SAVEHIST=900000
+setopt INC_APPEND_HISTORY
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt HIST_VERIFY
+setopt EXTENDED_HISTORY
+setopt HIST_IGNORE_SPACE
+EOF
+add_block_to_file "$HOME/.zshrc" "zsh-history" "$ZSH_HISTORY"
+
 # --- Completion config ---
 read -r -d '' ZSH_COMPLETION << 'EOF' || true
 zmodload zsh/complist

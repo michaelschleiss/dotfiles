@@ -43,6 +43,7 @@ tags
 .env
 .env.local
 .env.*.local
+.secrets
 
 # Python (general)
 __pycache__/
