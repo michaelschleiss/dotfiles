@@ -36,7 +36,10 @@ copy_dir() {
 
   for dir in "$from"/*/; do
     name=$(basename "$dir")
-    if [[ "$name" == "claude" || "$name" == "codex" || "$name" == "gh" ]]; then
+    if [[ "$name" == "serena" ]]; then
+      # Template: only copy if not exists
+      execute rsync -a --ignore-existing "$dir" "$to/$name/"
+    elif [[ "$name" == "claude" || "$name" == "codex" || "$name" == "gh" ]]; then
       execute rsync -a "$dir" "$to/$name/"
     else
       execute rsync -a --delete "$dir" "$to/$name/"
