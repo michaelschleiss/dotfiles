@@ -195,6 +195,8 @@ main() {
   add_block_to_file "$HOME/.zsh_profile" "ai-paths" 'export CLAUDE_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/claude"
 export CODEX_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/codex"'
 
+  add_block_to_file "$HOME/.zsh_profile" "codex-completion" 'eval "$(codex completion zsh)"'
+
   log "Done"
 }
 
