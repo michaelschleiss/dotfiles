@@ -95,8 +95,11 @@ bindsym $mod+Shift+0 move container to workspace 10
 # Reload config
 bindsym $mod+Shift+c reload
 
-# Exit sway
-bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit sway?' -b 'Yes' 'swaymsg exit'
+# Power menu
+bindsym $mod+Shift+p exec ~/.local/scripts/sway-power-menu
+
+# Exit sway (deprecated - use power menu instead)
+# bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit sway?' -b 'Yes' 'swaymsg exit'
 
 # Resize mode
 mode "resize" {
