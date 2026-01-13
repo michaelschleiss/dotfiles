@@ -29,3 +29,21 @@ add_block_to_file "$PROFILE" "aliases" "$ALIASES"
 
 # direnv hook
 add_block_to_file "$PROFILE" "direnv" 'eval "$(direnv hook zsh)"'
+
+# History settings
+read -r -d '' HISTORY << 'EOF' || true
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+setopt HIST_IGNORE_DUPS
+setopt SHARE_HISTORY
+EOF
+add_block_to_file "$PROFILE" "history" "$HISTORY"
+
+# fzf integration
+read -r -d '' FZF << 'EOF' || true
+source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
+source /opt/homebrew/opt/fzf/shell/completion.zsh
+bindkey '^G' fzf-cd-widget
+EOF
+add_block_to_file "$PROFILE" "fzf" "$FZF"
