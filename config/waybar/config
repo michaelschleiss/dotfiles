@@ -13,9 +13,6 @@
     "sway/mode": {
         "format": "{}"
     },
-    "sway/window": {
-        "max-length": 50
-    },
     "clock": {
         "format": "{:%H:%M}",
         "tooltip": false
