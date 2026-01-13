@@ -129,6 +129,7 @@ exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DE
 exec nm-applet
 exec kanshi
 exec swaync
+exec ghostty --app-id=scratchpad-term
 
 # Volume keys
 bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5%
@@ -147,6 +148,18 @@ bindsym $mod+Shift+period exec swaylock -f -c 000000
 
 # Move workspace to output
 bindsym $mod+m move workspace to output left
+
+# Scratchpad
+bindsym $mod+Shift+minus move scratchpad
+bindsym $mod+minus scratchpad show
+
+# Dropdown terminal
+bindsym $mod+grave [app_id="scratchpad-term"] scratchpad show
+for_window [app_id="scratchpad-term"] {
+    move scratchpad
+    resize set 80ppt 80ppt
+    border pixel 3
+}
 
 # Input config (uncomment and adjust as needed)
 # input type:keyboard {
