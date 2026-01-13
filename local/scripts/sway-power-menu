@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Fuzzel-based power menu for Sway
+
+options="Lock\nLogout\nSuspend\nReboot\nShutdown"
+
+choice=$(echo -e "$options" | fuzzel --dmenu --prompt "Power: ")
+
+case "$choice" in
+    Lock)
+        swaylock -f -c 000000
+        ;;
+    Logout)
+        swaymsg exit
+        ;;
+    Suspend)
+        systemctl suspend
+        ;;
+    Reboot)
+        systemctl reboot
+        ;;
+    Shutdown)
+        systemctl poweroff
+        ;;
+esac
