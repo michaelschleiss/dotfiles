@@ -5,7 +5,7 @@
     "margin": 3,
     "modules-left": ["sway/workspaces", "sway/mode"],
     "modules-center": ["clock"],
-    "modules-right": ["custom/notification", "network"],
+    "modules-right": ["custom/notification", "network", "tray"],
 
     "sway/workspaces": {
         "disable-scroll": true
@@ -18,10 +18,15 @@
         "tooltip": false
     },
     "network": {
-        "format-wifi": "",
+        "interface": "wl*",
+        "format-wifi": " {signalStrength}%",
         "format-ethernet": "",
         "format-disconnected": "⚠",
-        "tooltip-format": "{ifname}: {ipaddr}"
+        "tooltip-format-wifi": "{essid}\nSignal: {signalStrength}% ({signaldBm} dBm)\n{ipaddr}/{cidr}\nGateway: {gwaddr}",
+        "tooltip-format-ethernet": "{ifname}\n{ipaddr}/{cidr}",
+        "tooltip-format-disconnected": "Disconnected",
+        "on-click": "nm-connection-editor",
+        "interval": 5
     },
     "tray": {
         "spacing": 10
