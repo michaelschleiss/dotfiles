@@ -10,8 +10,8 @@ default_border pixel 2
 default_floating_border pixel 2
 
 # Gaps
-gaps inner 5
-gaps outer 5
+gaps inner 0
+gaps outer 0
 smart_gaps on
 
 # Use Mouse+$mod to drag floating windows
@@ -132,7 +132,7 @@ exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DE
 exec nm-applet
 exec kanshi
 exec swaync
-exec ghostty --app-id=scratchpad-term
+exec ghostty --class=scratchpad-term
 
 # Volume keys
 bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5%

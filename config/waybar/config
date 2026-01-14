@@ -15,11 +15,12 @@
     },
     "clock": {
         "format": "{:%H:%M}",
-        "tooltip": false
+        "tooltip": true,
+        "tooltip-format": "{:%A, %B %d, %Y}"
     },
     "network": {
         "interface": "wl*",
-        "format-wifi": " {signalStrength}%",
+        "format-wifi": "",
         "format-ethernet": "",
         "format-disconnected": "⚠",
         "tooltip-format-wifi": "{essid}\nSignal: {signalStrength}% ({signaldBm} dBm)\n{ipaddr}/{cidr}\nGateway: {gwaddr}",

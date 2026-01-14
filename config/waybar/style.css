@@ -22,6 +22,14 @@ window#waybar {
     color: #1e1e2e;
 }
 
+#network {
+    margin-bottom: 10px;
+}
+
 #network.disconnected {
     color: #f38ba8;
+}
+
+#tray {
+    margin-bottom: 5px;
 }
