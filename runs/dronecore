@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Dronecore (Jetson) SSH setup - works on macOS and Linux
+
+log() {
+  echo "[dronecore] $*"
+}
+
+ALIAS_NAME="dronecore"
+ALIAS_CMD='sshpass -p dronecore ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null dcs_user@192.168.55.1'
+ALIAS_LINE="alias $ALIAS_NAME=\"$ALIAS_CMD\""
+
+os_name="$(uname -s)"
+
+# Install sshpass if needed
+if ! command -v sshpass &>/dev/null; then
+  log "Installing sshpass"
+  if [[ "$os_name" == "Darwin" ]]; then
+    brew install hudochenkov/sshpass/sshpass
+  elif command -v apt &>/dev/null; then
+    sudo apt install -y sshpass
+  elif command -v pacman &>/dev/null; then
+    sudo pacman -S --noconfirm sshpass
+  else
+    log "ERROR: Cannot install sshpass, please install manually"
+    exit 1
+  fi
+else
+  log "sshpass already installed"
+fi
+
+# Determine profile file
+if [[ -f "$HOME/.zsh_profile" ]]; then
+  PROFILE="$HOME/.zsh_profile"
+elif [[ -f "$HOME/.zshrc" ]]; then
+  PROFILE="$HOME/.zshrc"
+elif [[ -f "$HOME/.bash_profile" ]]; then
+  PROFILE="$HOME/.bash_profile"
+else
+  PROFILE="$HOME/.bashrc"
+fi
+
+# Add or update alias (idempotent)
+if grep -q "^alias $ALIAS_NAME=" "$PROFILE" 2>/dev/null; then
+  # Check if it matches
+  if grep -qF "$ALIAS_LINE" "$PROFILE"; then
+    log "Alias '$ALIAS_NAME' already configured in $PROFILE"
+  else
+    log "Updating alias '$ALIAS_NAME' in $PROFILE"
+    sed -i.bak "/^alias $ALIAS_NAME=/d" "$PROFILE"
+    echo "$ALIAS_LINE" >> "$PROFILE"
+  fi
+else
+  log "Adding alias '$ALIAS_NAME' to $PROFILE"
+  echo "" >> "$PROFILE"
+  echo "# Dronecore quick SSH" >> "$PROFILE"
+  echo "$ALIAS_LINE" >> "$PROFILE"
+fi
+
+log "Done! Run 'source $PROFILE' or restart shell, then use: dronecore"
+
+# Platform-specific internet sharing instructions
+log ""
+log "To share internet with dronecore:"
+if [[ "$os_name" == "Darwin" ]]; then
+  log "  sudo sysctl -w net.inet.ip.forwarding=1"
+  log "  # Enable Internet Sharing in System Preferences > Sharing"
+else
+  log "  sudo sysctl -w net.ipv4.ip_forward=1"
+  log "  sudo iptables -t nat -A POSTROUTING -s 192.168.55.0/24 -j MASQUERADE"
+  log "  sudo iptables -I FORWARD 1 -s 192.168.55.0/24 -j ACCEPT"
+  log "  sudo iptables -I FORWARD 1 -d 192.168.55.0/24 -j ACCEPT"
+fi
