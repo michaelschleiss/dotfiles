@@ -178,7 +178,8 @@ main() {
 
   # Shell integration
   add_block_to_file "$HOME/.zsh_profile" "ai-paths" 'export CLAUDE_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/claude"
-export CODEX_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/codex"'
+export CODEX_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/codex"
+alias cds="claude --allow-dangerously-skip-permissions"'
 
   add_block_to_file "$HOME/.zshrc" "codex-completion" 'if [[ -o interactive ]] && command -v codex >/dev/null 2>&1; then
   if ! whence -w compdef >/dev/null 2>&1; then
