@@ -1,6 +1,15 @@
 #!/bin/bash
 # Shared helpers for runs/ scripts
 
+# Cross-platform sed -i (macOS requires '' argument, Linux doesn't)
+_sed_i() {
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
 # Add a block to a file if not already present (idempotent)
 # Usage: add_block_to_file <file> <marker_name> <content>
 # Example: add_block_to_file ~/.zsh_profile "my-tool" "alias foo='bar'"
@@ -20,7 +29,7 @@ add_block_to_file() {
             return 0
         fi
         echo "📝 Updating $name in $file..."
-        sed -i '' "/$marker/,/$marker_end/d" "$file"
+        _sed_i "/$marker/,/$marker_end/d" "$file"
     else
         echo "📝 Adding $name to $file..."
     fi
@@ -47,6 +56,6 @@ remove_block_from_file() {
     fi
 
     echo "🗑  Removing $name from $file..."
-    sed -i '' "/$marker/,/$marker_end/d" "$file"
+    _sed_i "/$marker/,/$marker_end/d" "$file"
     echo "✓ Removed $name"
 }
