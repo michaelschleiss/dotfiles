@@ -12,11 +12,19 @@ add_block_to_file() {
     local marker_end="# <<< $name <<<"
 
     if grep -q "$marker" "$file" 2>/dev/null; then
-        echo "✓ $name already in $file"
-        return 0
+        # Extract existing block content and compare
+        local existing
+        existing=$(sed -n "/$marker/,/$marker_end/p" "$file" | sed '1d;$d')
+        if [[ "$existing" == "$content" ]]; then
+            echo "✓ $name already in $file"
+            return 0
+        fi
+        echo "📝 Updating $name in $file..."
+        sed -i '' "/$marker/,/$marker_end/d" "$file"
+    else
+        echo "📝 Adding $name to $file..."
     fi
 
-    echo "📝 Adding $name to $file..."
     cat >> "$file" <<EOF
 
 $marker
