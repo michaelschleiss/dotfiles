@@ -33,14 +33,13 @@ echo "📝 Creating FritzBox config..."
 sudo tee /opt/homebrew/etc/wireguard/fritzbox.conf > /dev/null <<'EOF'
 [Interface]
 PrivateKey = gCwkkb7shwns8C3CjOWpbBRvGJSBymj/AMEHVIsjHFY=
-Address = 192.168.178.201/24,fdc3:c1d2:3ad9::201/64
-DNS = 192.168.178.1,fdc3:c1d2:3ad9::7642:7fff:fe19:aac7
-DNS = fritz.box
+Address = 192.168.178.201/32
+DNS = 192.168.178.1
 
 [Peer]
 PublicKey = imkHkIpfZlzgCH7gOuPm74U5P0GW1fSC6s3tUGYc0jw=
 PresharedKey = dmh8PxigT1ePZ0AJCxHwVoScFP6pVCutObADsNKUjAs=
-AllowedIPs = 192.168.178.0/24,0.0.0.0/0,fdc3:c1d2:3ad9::/64,::/0
+AllowedIPs = 0.0.0.0/0
 Endpoint = 5y7ifvlz9xdy3mwv.myfritz.net:57889
 PersistentKeepalive = 25
 EOF
