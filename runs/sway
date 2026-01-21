@@ -38,7 +38,8 @@ sudo apt-get install -qq -y \
   pipewire-pulse \
   wireplumber \
   fonts-font-awesome \
-  kanshi # auto-switches display profiles on monitor plug/unplug
+  kanshi \
+  wob # OSD bar for volume/brightness feedback
 
 # Hybrid GPU setup (Intel + Nvidia)
 if lspci | grep -qi nvidia && lspci | grep -qi "vga.*intel"; then
