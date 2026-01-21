@@ -134,14 +134,18 @@ exec kanshi
 exec swaync
 exec ghostty --class=scratchpad-term
 
+# OSD bar (wob) for volume/brightness feedback
+set $wob_sock $XDG_RUNTIME_DIR/wob.sock
+exec rm -f $wob_sock && mkfifo $wob_sock && tail -f $wob_sock | wob
+
 # Volume keys
-bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5%
-bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5%
+bindsym XF86AudioRaiseVolume exec sh -c 'pactl set-sink-volume @DEFAULT_SINK@ +5% && pactl get-sink-volume @DEFAULT_SINK@ | grep -oP "\d+(?=%)" | head -1 > $XDG_RUNTIME_DIR/wob.sock'
+bindsym XF86AudioLowerVolume exec sh -c 'pactl set-sink-volume @DEFAULT_SINK@ -5% && pactl get-sink-volume @DEFAULT_SINK@ | grep -oP "\d+(?=%)" | head -1 > $XDG_RUNTIME_DIR/wob.sock'
 bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle
 
 # Brightness keys
-bindsym XF86MonBrightnessUp exec brightnessctl set +10%
-bindsym XF86MonBrightnessDown exec brightnessctl set 10%-
+bindsym XF86MonBrightnessUp exec sh -c 'brightnessctl set +2% && brightnessctl -m | cut -d, -f4 | tr -d "%" > $XDG_RUNTIME_DIR/wob.sock'
+bindsym XF86MonBrightnessDown exec sh -c 'brightnessctl set 2%- && brightnessctl -m | cut -d, -f4 | tr -d "%" > $XDG_RUNTIME_DIR/wob.sock'
 
 # Screenshot (grim + slurp)
 bindsym $mod+Shift+s exec grim -g "$(slurp)" - | tee ~/.screenshots/$(date +%Y%m%d-%H%M%S).png | wl-copy
