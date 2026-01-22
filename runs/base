@@ -23,7 +23,7 @@ fi
 # --- Essential tools ---
 log "Installing essential packages"
 if [[ "$os_name" == "Darwin" ]]; then
-  brew install -q git curl wget pkg-config dua-cli
+  brew install -q git curl wget aria2 pkg-config dua-cli
   brew install -q --cask nikitabobko/tap/aerospace
   brew install -q --cask xquartz
 elif [[ "$os_name" == "Linux" ]]; then
@@ -32,6 +32,7 @@ elif [[ "$os_name" == "Linux" ]]; then
     git \
     curl \
     wget \
+    aria2 \
     build-essential \
     pkg-config \
     unzip \
