@@ -1,12 +1,61 @@
 #!/bin/bash
-# WireGuard FritzBox VPN - Complete setup for macOS
+# WireGuard FritzBox VPN - Cross-platform setup for macOS and Linux
 
 set -e
 source "$(dirname "$0")/lib"
 
 PROFILE="$HOME/.zsh_profile"
 
-FRITZBOX_FUNC='fritzbox() {
+# Detect OS and set paths
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    PKG_INSTALL="brew install"
+    WG_CONFIG_DIR="/opt/homebrew/etc/wireguard"
+    USE_SYSTEMD_RESOLVED=false
+else
+    PKG_INSTALL="sudo apt install -y"
+    WG_CONFIG_DIR="/etc/wireguard"
+    # Check if systemd-resolved is active
+    if systemctl is-active --quiet systemd-resolved 2>/dev/null; then
+        USE_SYSTEMD_RESOLVED=true
+    else
+        USE_SYSTEMD_RESOLVED=false
+    fi
+fi
+
+# macOS: standard wg-quick commands
+# Linux with systemd-resolved: custom commands with DNS handling
+if [[ "$USE_SYSTEMD_RESOLVED" == "true" ]]; then
+    FRITZBOX_FUNC='fritzbox() {
+    case "$1" in
+        on)
+            sudo wg-quick up fritzbox
+            # Set DNS via systemd-resolved
+            IFACE=$(ip -o link show | grep -oP "fritzbox(?=:)")
+            if [[ -n "$IFACE" ]]; then
+                sudo resolvectl dns "$IFACE" 192.168.178.1
+                sudo resolvectl domain "$IFACE" "~fritz.box" "fritz.box"
+            fi
+            ;;
+        off)
+            IFACE=$(ip -o link show | grep -oP "fritzbox(?=:)" 2>/dev/null || true)
+            if [[ -n "$IFACE" ]]; then
+                sudo resolvectl revert "$IFACE" 2>/dev/null || true
+            fi
+            sudo wg-quick down fritzbox
+            ;;
+        status)
+            sudo wg show
+            IFACE=$(ip -o link show | grep -oP "fritzbox(?=:)" 2>/dev/null || true)
+            if [[ -n "$IFACE" ]]; then
+                echo ""
+                resolvectl status "$IFACE" 2>/dev/null || echo "DNS: Not configured"
+            fi
+            ;;
+        *) echo "Usage: fritzbox {on|off|status}"; return 1 ;;
+    esac
+}'
+else
+    FRITZBOX_FUNC='fritzbox() {
     case "$1" in
         on)  sudo wg-quick up fritzbox ;;
         off) sudo wg-quick down fritzbox ;;
@@ -14,23 +63,24 @@ FRITZBOX_FUNC='fritzbox() {
         *) echo "Usage: fritzbox {on|off|status}"; return 1 ;;
     esac
 }'
+fi
 
 echo "🔧 Setting up WireGuard FritzBox VPN..."
 
 # Install WireGuard if needed
 if ! command -v wg &> /dev/null; then
     echo "📦 Installing WireGuard..."
-    brew install wireguard-tools
+    $PKG_INSTALL wireguard-tools
 else
     echo "✓ WireGuard already installed"
 fi
 
 # Create config directory
-sudo mkdir -p /opt/homebrew/etc/wireguard
+sudo mkdir -p "$WG_CONFIG_DIR"
 
 # Write config (embedded)
 echo "📝 Creating FritzBox config..."
-sudo tee /opt/homebrew/etc/wireguard/fritzbox.conf > /dev/null <<'EOF'
+sudo tee "$WG_CONFIG_DIR/fritzbox.conf" > /dev/null <<'EOF'
 [Interface]
 PrivateKey = gCwkkb7shwns8C3CjOWpbBRvGJSBymj/AMEHVIsjHFY=
 Address = 192.168.178.201/32
@@ -44,7 +94,7 @@ Endpoint = 5y7ifvlz9xdy3mwv.myfritz.net:57889
 PersistentKeepalive = 25
 EOF
 
-sudo chmod 600 /opt/homebrew/etc/wireguard/fritzbox.conf
+sudo chmod 600 "$WG_CONFIG_DIR/fritzbox.conf"
 
 # Add shell function
 add_block_to_file "$PROFILE" "wireguard-fritzbox" "$FRITZBOX_FUNC"
@@ -52,6 +102,9 @@ add_block_to_file "$PROFILE" "wireguard-fritzbox" "$FRITZBOX_FUNC"
 echo ""
 echo "✅ Setup complete! Run: source ~/.zsh_profile"
 echo ""
+if [[ "$USE_SYSTEMD_RESOLVED" == "true" ]]; then
+    echo "🔍 Detected systemd-resolved - using resolvectl for DNS"
+fi
 echo "Usage:  fritzbox on     - Connect"
 echo "        fritzbox off    - Disconnect"
 echo "        fritzbox status - Check status"
