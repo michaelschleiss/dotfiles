@@ -97,16 +97,13 @@ install_codex_from_github() {
 
   local installed_version=""
   if [[ -x "${install_dir}/codex" ]]; then
-    installed_version="$("${install_dir}/codex" --version 2>/dev/null | awk '{print $2}' || true)"
+    installed_version="$("${install_dir}/codex" --version 2>/dev/null | grep -Eo '[0-9]+\\.[0-9]+\\.[0-9]+' | head -n 1 || true)"
   fi
 
   local latest_version=""
-  latest_version="$(
-    curl -fsSL "https://api.github.com/repos/openai/codex/releases/latest" 2>/dev/null \
-      | grep -m1 '"tag_name"' \
-      | sed -E 's/.*"tag_name": "v?([^"]+)".*/\1/' \
-      || true
-  )"
+  local release_json=""
+  release_json="$(curl -fsSL "https://api.github.com/repos/openai/codex/releases/latest" 2>/dev/null || true)"
+  latest_version="$(printf '%s' "${release_json}" | grep -m1 '"tag_name"' | grep -Eo '[0-9]+\\.[0-9]+\\.[0-9]+' | head -n 1 || true)"
 
   if [[ -n "${installed_version}" && -n "${latest_version}" && "${installed_version}" == "${latest_version}" ]]; then
     log "codex already up to date: ${installed_version}"
@@ -145,7 +142,7 @@ install_codex() {
   install_ripgrep
 
   if [[ "$os_name" == "Darwin" ]] && have brew; then
-    log "Upgrading codex (Homebrew cask)"
+    log "Updating codex (Homebrew cask)"
     brew upgrade --cask codex || brew install --cask codex
     return 0
   fi
