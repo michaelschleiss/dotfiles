@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/lib"
+
+log() {
+  echo "[gcloud] $*"
+}
+
+have() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+INSTALL_DIR="$HOME/.local/share/google-cloud-sdk"
+
+if have gcloud; then
+  log "gcloud already installed: $(gcloud --version 2>/dev/null | head -1)"
+  exit 0
+fi
+
+os_name="$(uname -s)"
+arch_name="$(uname -m)"
+
+# Determine archive name
+case "${os_name}/${arch_name}" in
+  Darwin/arm64|Darwin/aarch64) archive="google-cloud-cli-darwin-arm.tar.gz" ;;
+  Darwin/x86_64|Darwin/amd64)  archive="google-cloud-cli-darwin-x86_64.tar.gz" ;;
+  Linux/x86_64|Linux/amd64)    archive="google-cloud-cli-linux-x86_64.tar.gz" ;;
+  Linux/arm64|Linux/aarch64)   archive="google-cloud-cli-linux-arm.tar.gz" ;;
+  *)
+    echo "Unsupported platform: ${os_name} ${arch_name}" >&2
+    exit 1
+    ;;
+esac
+
+log "Downloading $archive"
+tmpdir="$(mktemp -d)"
+curl -fL --progress-bar "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$archive" -o "$tmpdir/$archive"
+
+log "Installing to $INSTALL_DIR"
+mkdir -p "$(dirname "$INSTALL_DIR")"
+rm -rf "$INSTALL_DIR"
+tar -xf "$tmpdir/$archive" -C "$(dirname "$INSTALL_DIR")"
+rm -rf "$tmpdir"
+
+log "Running install script"
+"$INSTALL_DIR/install.sh" --quiet --path-update false --command-completion false
+
+# Shell integration
+add_block_to_file "$HOME/.zsh_profile" "gcloud" \
+  "export PATH=\"$INSTALL_DIR/bin:\$PATH\""
+
+log "Done. Restart shell or run: source ~/.zsh_profile"
+log "Then: gcloud init && gcloud auth configure-docker europe-west10-docker.pkg.dev"
