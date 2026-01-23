@@ -69,7 +69,7 @@ bindsym $mod+Shift+space floating toggle
 bindsym $mod+a focus parent
 
 # Workspaces
-bindsym $mod+1 workspace 1, exec sh -c 'pgrep -x brave-browser || brave-browser'
+bindsym $mod+1 exec sh -c 'swaymsg "workspace 1" && (swaymsg "[app_id=brave-browser] focus" 2>/dev/null || brave-browser)'
 bindsym $mod+2 workspace 2
 bindsym $mod+3 workspace 3
 bindsym $mod+4 workspace 4
@@ -159,6 +159,9 @@ bindsym $mod+m move workspace to output left
 # Scratchpad
 bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show
+
+# Assign Brave to workspace 1
+assign [app_id="brave-browser"] workspace 1
 
 # Dropdown terminal
 bindsym $mod+grave [app_id="scratchpad-term"] scratchpad show
