@@ -12,7 +12,7 @@
   "mcpServers": {
     "paper-search": {
       "command": "uvx",
-      "args": ["paper-search-mcp"]
+      "args": ["--from", "git+https://github.com/michaelschleiss/paper-search-mcp", "paper-search-mcp"]
     }
   },
   "permissions": {
