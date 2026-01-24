@@ -9,19 +9,23 @@ log() {
 
 # Function for macOS: enables internet sharing via pfctl then SSHs in
 DRONECORE_FUNC_MAC='dronecore() {
-  local inet_if="${1:-en0}"
+  # Auto-detect default internet interface, or use provided argument
+  local inet_if="${1:-$(route get default 2>/dev/null | awk "/interface:/ {print \$2}")}"
+  if [[ -z "$inet_if" ]]; then
+    echo "[dronecore] ERROR: Could not detect internet interface. Pass it as argument: dronecore en0"
+    return 1
+  fi
   # Check if dronecore is connected
   if ! ifconfig | grep -q "inet 192.168.55"; then
     echo "[dronecore] ERROR: No interface on 192.168.55.x - is dronecore connected?"
     return 1
   fi
-  # Enable IP forwarding + NAT silently
+  # Enable IP forwarding + NAT with pass rules
   sudo sysctl -w net.inet.ip.forwarding=1 >/dev/null 2>&1
-  local pf_rules=$(mktemp)
-  echo "nat on $inet_if from 192.168.55.0/24 to any -> ($inet_if)" > "$pf_rules"
-  sudo pfctl -a com.apple/dronecore -f "$pf_rules" 2>/dev/null
-  sudo pfctl -e 2>/dev/null || true
-  rm -f "$pf_rules"
+  echo "nat on $inet_if from 192.168.55.0/24 to any -> ($inet_if)
+pass from 192.168.55.0/24 to any keep state
+pass from any to 192.168.55.0/24 keep state" | sudo pfctl -ef - 2>/dev/null
+  echo "[dronecore] NAT enabled on $inet_if"
   # SSH in
   sshpass -p dronecore ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null dcs_user@192.168.55.1
 }'
