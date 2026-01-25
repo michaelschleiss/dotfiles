@@ -81,4 +81,91 @@ EOF
   fi
 fi
 
-log "Done - logout and select 'Sway' at login screen"
+# greetd + tuigreet login manager
+log "Installing greetd"
+sudo apt-get install -qq -y greetd
+
+# Build tuigreet from source (not in apt)
+if ! command -v cargo &>/dev/null; then
+  log "Error: cargo not found. Install Rust first."
+  exit 1
+fi
+
+# cargo install handles version checking - skips if up-to-date
+log "Checking tuigreet (cargo install handles updates)"
+cargo install tuigreet 2>&1 | grep -v "Ignored package" || true
+
+# Copy to /usr/local/bin if cargo version is newer or not installed there
+cargo_version=$(cargo install --list | grep "^tuigreet " | awk '{print $2}' | tr -d 'v()')
+if [[ -x /usr/local/bin/tuigreet ]]; then
+  # tuigreet can't run --version without greetd, so compare binary timestamps
+  if [[ ~/.cargo/bin/tuigreet -nt /usr/local/bin/tuigreet ]]; then
+    log "Updating /usr/local/bin/tuigreet to $cargo_version"
+    sudo cp ~/.cargo/bin/tuigreet /usr/local/bin/tuigreet
+  else
+    log "tuigreet $cargo_version already installed"
+  fi
+else
+  log "Installing tuigreet $cargo_version to /usr/local/bin"
+  sudo cp ~/.cargo/bin/tuigreet /usr/local/bin/tuigreet
+fi
+
+# Determine sway command (hybrid GPU uses --unsupported-gpu)
+sway_cmd="sway"
+if [[ -f /usr/share/wayland-sessions/sway-hybrid.desktop ]]; then
+  sway_cmd="sway --unsupported-gpu"
+fi
+
+# greetd configuration
+log "Configuring /etc/greetd/config.toml"
+sudo tee /etc/greetd/config.toml > /dev/null << EOF
+[terminal]
+vt = 1
+
+[default_session]
+command = "/usr/local/bin/tuigreet --remember --remember-session --time --cmd '$sway_cmd'"
+user = "greeter"
+EOF
+
+# Systemd override to conflict with getty@tty1 (since we use vt = 1)
+log "Creating systemd override for tty1"
+sudo mkdir -p /etc/systemd/system/greetd.service.d
+sudo tee /etc/systemd/system/greetd.service.d/override.conf > /dev/null << 'EOF'
+[Unit]
+After=getty@tty1.service
+Conflicts=getty@tty1.service
+EOF
+
+# PAM configuration with keyring support
+log "Configuring PAM for greetd"
+sudo tee /etc/pam.d/greetd > /dev/null << 'EOF'
+#%PAM-1.0
+@include login
+
+-auth        optional        pam_gnome_keyring.so
+-auth        optional        pam_kwallet5.so
+
+-session     optional        pam_gnome_keyring.so auto_start
+-session     optional        pam_kwallet5.so auto_start
+EOF
+
+sudo tee /etc/pam.d/greetd-greeter > /dev/null << 'EOF'
+#%PAM-1.0
+@include login
+EOF
+
+# Prevent needrestart from prompting about greetd
+if [[ -d /etc/needrestart/conf.d ]]; then
+  log "Configuring needrestart exception"
+  sudo tee /etc/needrestart/conf.d/50_greetd.conf > /dev/null << 'EOF'
+$nrconf{override_rc}{qr(^greetd)} = 0;
+EOF
+fi
+
+# Enable greetd
+log "Enabling greetd service"
+sudo systemctl daemon-reload
+sudo systemctl enable greetd
+
+log "Done - reboot to use tuigreet login"
+log "Note: Other TTYs (Ctrl+Alt+F2, etc.) remain available for emergency login"
