@@ -27,8 +27,9 @@ if [[ -d /snap ]] && ! mount | grep -q '/snap'; then
   sudo rm -rf /snap
 fi
 
-log "Marking essential GNOME packages as manual"
-sudo apt-mark manual gnome-shell gnome-session gnome-control-center gdm3 || true
+log "Marking essential packages as manual (prevents cascade removal)"
+sudo apt-mark manual pipewire wireplumber blueman cups 2>/dev/null || true
+sudo apt-mark manual gnome-shell gnome-session gnome-control-center gdm3 2>/dev/null || true
 
 log "Removing all snaps"
 if command -v snap &> /dev/null; then
@@ -52,6 +53,9 @@ done
 
 log "Removing snapd package"
 apt_remove snapd
+# NOTE: Don't remove gir1.2-snapd-2 or libsnapd-glib-2-1!
+# These are dependencies of update-manager, which is a dependency of ubuntu-desktop.
+# Removing them triggers a cascade that removes pipewire, gdm3, gnome-shell, cups, etc.
 
 log "Cleaning up snap directories"
 rm -rf ~/snap 2>/dev/null || true
@@ -64,6 +68,17 @@ if mount | grep -q '/snap'; then
 else
   sudo rm -rf /snap 2>/dev/null || true
 fi
+
+log "Cleaning up snap systemd units"
+sudo rm -f /etc/systemd/system/snap-*.mount
+sudo rm -f /etc/systemd/system/snap.mount
+
+log "Cleaning up snap AppArmor profiles"
+sudo rm -f /etc/apparmor.d/*snap*
+
+log "Reloading systemd"
+sudo systemctl daemon-reload
+sudo systemctl reset-failed
 
 log "Blocking snap reinstall"
 sudo tee /etc/apt/preferences.d/nosnap.pref > /dev/null << 'EOF'
