@@ -33,15 +33,14 @@ This is a dotfiles/dev environment repository that manages configuration files a
 
 - `.local/` - Files copied to `~/.local/`
 
-- `env/` - Shell profiles copied directly to `~`
-  - `.zsh_profile`, `.bash_profile` - Shell customizations (fzf, aliases, PATH)
+- `env/` - Files copied directly to `~`
   - `.fdignore` - fd ignore patterns
-  - `zshrc-completion.zsh` - Zsh completion config
 
 - `runs/` - Installation scripts (run via `./run`)
   - `neovim` - Build Neovim v0.11.0 from source
   - `tmux` - Build tmux 3.5a from source with TPM
-  - `zsh` - Configure zsh to source `.zsh_profile`
+  - `zsh` - Configure zsh interactive defaults
+  - `zsh-profile` - Set login-shell env defaults
   - `libs` - Install ripgrep, fd, and fzf
   - `ai` - Install Claude Code and OpenAI Codex CLI tools
 
@@ -49,7 +48,7 @@ This is a dotfiles/dev environment repository that manages configuration files a
 
 ## Architecture Notes
 
-**Deployment flow**: `dev-env` uses rsync to sync directories from `.config/` and `.local/` to their targets. Most directories sync with `--delete` (removes files not in source), but `claude/` and `codex/` directories sync without `--delete` to preserve local state. Shell profiles from `env/` are copied individually to `$HOME`.
+**Deployment flow**: `dev-env` uses rsync to sync directories from `.config/` and `.local/` to their targets. Most directories sync with `--delete` (removes files not in source), but `claude/` and `codex/` directories sync without `--delete` to preserve local state. Shell config is managed by `runs/*` via `add_block_to_file` (primarily `.zshrc` and `.zprofile`).
 
 **Neovim**: Entry point is `.config/nvim/init.lua`. Has separate paths for VSCode-Neovim mode vs regular Neovim. Plugin management via lazy.nvim configured in `lua/config/lazy.lua`.
 

@@ -9,12 +9,6 @@
     "CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1"
   },
   "includeCoAuthoredBy": false,
-  "mcpServers": {
-    "paper-search": {
-      "command": "uvx",
-      "args": ["--from", "git+https://github.com/michaelschleiss/paper-search-mcp", "paper-search-mcp"]
-    }
-  },
   "permissions": {
     "allow": [
       "Bash(timeout 8 python:*)"
@@ -32,5 +26,15 @@
     "context7@claude-plugins-official": true,
     "feature-dev@claude-plugins-official": true
   },
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": true,
+  "mcpServers": {
+    "paper-search": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/michaelschleiss/paper-search-mcp",
+        "paper-search-mcp"
+      ]
+    }
+  }
 }
