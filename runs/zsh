@@ -24,10 +24,6 @@ else
   log "zsh already default shell"
 fi
 
-# --- Source .zsh_profile from .zshrc ---
-touch "$HOME/.zshrc"
-add_block_to_file "$HOME/.zshrc" "zsh-profile" '[[ -f ~/.zsh_profile ]] && source ~/.zsh_profile'
-
 # --- History settings ---
 read -r -d '' ZSH_HISTORY << 'EOF' || true
 HISTFILE=~/.zsh_history
@@ -51,6 +47,28 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' 'r:|[._-]=* r:|=*'
 autoload -Uz compinit && compinit
 EOF
 add_block_to_file "$HOME/.zshrc" "zsh-completion" "$ZSH_COMPLETION"
+
+# --- Aliases ---
+read -r -d '' ZSH_ALIASES << 'EOF' || true
+alias rsync="rsync -ahr --partial --partial-dir=/tmp/.rsync-partial --info=progress2 --no-inc-recursive -e 'ssh -T -o Compression=no' -c"
+alias cat='bat --paging=never'
+EOF
+add_block_to_file "$HOME/.zshrc" "zsh-aliases" "$ZSH_ALIASES"
+
+# --- direnv hook ---
+add_block_to_file "$HOME/.zshrc" "direnv" 'eval "$(direnv hook zsh)"'
+
+# --- fzf integration ---
+read -r -d '' ZSH_FZF << 'EOF' || true
+if [[ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]]; then
+  source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
+  source /opt/homebrew/opt/fzf/shell/completion.zsh
+elif [[ -f ~/.fzf.zsh ]]; then
+  source ~/.fzf.zsh
+fi
+bindkey '^G' fzf-cd-widget
+EOF
+add_block_to_file "$HOME/.zshrc" "fzf" "$ZSH_FZF"
 
 # --- Keybindings ---
 add_block_to_file "$HOME/.zshrc" "zsh-keybindings" '# Ctrl+g: fuzzy cd into projects
