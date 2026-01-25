@@ -29,6 +29,3 @@ if [[ "$(uname -s)" == "Linux" ]] && command -v batcat &>/dev/null && ! command 
   mkdir -p ~/.local/bin
   ln -sf "$(which batcat)" ~/.local/bin/bat
 fi
-
-# Shell integration
-add_block_to_file "$HOME/.zsh_profile" "fzf" '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh'

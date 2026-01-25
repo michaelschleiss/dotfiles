@@ -2,7 +2,7 @@
 set -euo pipefail
 source "$(dirname "$0")/lib"
 
-PROFILE="$HOME/.zsh_profile"
+PROFILE="$HOME/.zprofile"
 touch "$PROFILE"
 
 # Secrets (API keys, tokens - file must be created manually)
@@ -19,31 +19,3 @@ add_block_to_file "$PROFILE" "xdg" "$XDG_DIRS"
 
 # PATH (core - needed by all other scripts)
 add_block_to_file "$PROFILE" "path" 'export PATH="$HOME/.pixi/bin:$HOME/.local/bin:$HOME/.local/scripts:$PATH"'
-
-# General aliases
-read -r -d '' ALIASES << 'EOF' || true
-alias rsync="rsync -ahr --partial --partial-dir=/tmp/.rsync-partial --info=progress2 --no-inc-recursive -e 'ssh -T -o Compression=no' -c"
-alias cat='bat --paging=never'
-EOF
-add_block_to_file "$PROFILE" "aliases" "$ALIASES"
-
-# direnv hook
-add_block_to_file "$PROFILE" "direnv" 'eval "$(direnv hook zsh)"'
-
-# History settings
-read -r -d '' HISTORY << 'EOF' || true
-HISTFILE=~/.zsh_history
-HISTSIZE=10000
-SAVEHIST=10000
-setopt HIST_IGNORE_DUPS
-setopt SHARE_HISTORY
-EOF
-add_block_to_file "$PROFILE" "history" "$HISTORY"
-
-# fzf integration
-read -r -d '' FZF << 'EOF' || true
-source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
-source /opt/homebrew/opt/fzf/shell/completion.zsh
-bindkey '^G' fzf-cd-widget
-EOF
-add_block_to_file "$PROFILE" "fzf" "$FZF"

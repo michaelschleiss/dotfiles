@@ -46,8 +46,8 @@ log "Running install script"
 "$INSTALL_DIR/install.sh" --quiet --path-update false --command-completion false
 
 # Shell integration
-add_block_to_file "$HOME/.zsh_profile" "gcloud" \
+add_block_to_file "$HOME/.zprofile" "gcloud" \
   "export PATH=\"$INSTALL_DIR/bin:\$PATH\""
 
-log "Done. Restart shell or run: source ~/.zsh_profile"
+log "Done. Restart shell or run: source ~/.zprofile"
 log "Then: gcloud init && gcloud auth configure-docker europe-west10-docker.pkg.dev"

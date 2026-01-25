@@ -70,10 +70,10 @@ else
 fi
 
 # Determine profile file
-if [[ -f "$HOME/.zsh_profile" ]]; then
-  PROFILE="$HOME/.zsh_profile"
-elif [[ -f "$HOME/.zshrc" ]]; then
+if [[ -f "$HOME/.zshrc" ]]; then
   PROFILE="$HOME/.zshrc"
+elif [[ -f "$HOME/.zprofile" ]]; then
+  PROFILE="$HOME/.zprofile"
 elif [[ -f "$HOME/.bash_profile" ]]; then
   PROFILE="$HOME/.bash_profile"
 else

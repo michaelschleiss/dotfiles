@@ -4,7 +4,7 @@
 set -e
 source "$(dirname "$0")/lib"
 
-PROFILE="$HOME/.zsh_profile"
+PROFILE="$HOME/.zshrc"
 
 # Detect OS and set paths
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -33,7 +33,10 @@ if [[ "$USE_SYSTEMD_RESOLVED" == "true" ]]; then
             IFACE=$(ip -o link show | grep -oP "fritzbox(?=:)")
             if [[ -n "$IFACE" ]]; then
                 sudo resolvectl dns "$IFACE" 192.168.178.1
-                sudo resolvectl domain "$IFACE" "~fritz.box" "fritz.box"
+                sudo resolvectl domain "$IFACE" fritz.box
+                # Add host routes for subnet conflict (when on another 192.168.178.x network)
+                sudo ip route add 192.168.178.1/32 dev fritzbox 2>/dev/null || true
+                sudo ip route add 192.168.178.60/32 dev fritzbox 2>/dev/null || true  # legolas
             fi
             ;;
         off)
@@ -85,6 +88,7 @@ sudo tee "$WG_CONFIG_DIR/fritzbox.conf" > /dev/null <<'EOF'
 PrivateKey = gCwkkb7shwns8C3CjOWpbBRvGJSBymj/AMEHVIsjHFY=
 Address = 192.168.178.201/32
 DNS = 192.168.178.1
+MTU = 1280
 
 [Peer]
 PublicKey = imkHkIpfZlzgCH7gOuPm74U5P0GW1fSC6s3tUGYc0jw=
@@ -100,7 +104,7 @@ sudo chmod 600 "$WG_CONFIG_DIR/fritzbox.conf"
 add_block_to_file "$PROFILE" "wireguard-fritzbox" "$FRITZBOX_FUNC"
 
 echo ""
-echo "✅ Setup complete! Run: source ~/.zsh_profile"
+echo "✅ Setup complete! Run: source ~/.zshrc"
 echo ""
 if [[ "$USE_SYSTEMD_RESOLVED" == "true" ]]; then
     echo "🔍 Detected systemd-resolved - using resolvectl for DNS"
