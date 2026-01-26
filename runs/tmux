@@ -2,37 +2,41 @@
 set -euo pipefail
 
 # First install tmux
-git clone git@github.com:tmux/tmux.git ~/tmux
+if [[ ! -d ~/tmux ]]; then
+  git clone -q git@github.com:tmux/tmux.git ~/tmux
+fi
 cd ~/tmux
-git fetch
-git checkout 3.5a
+git fetch -q
+git checkout -q 3.5a
 
 os_name="$(uname -s)"
 if [[ "$os_name" == "Darwin" ]]; then
-  brew install automake pkg-config libevent ncurses utf8proc
+  brew install -q automake pkg-config libevent ncurses utf8proc
   cores=$(sysctl -n hw.ncpu)
 elif [[ "$os_name" == "Linux" ]]; then
-  sudo apt update
-  sudo apt install -y \
-  libevent-dev \
-  libncurses-dev \
-  pkg-config \
-  build-essential \
-  automake \
-  bison \
-  libutf8proc-dev
+  sudo apt-get update -qq
+  sudo apt-get install -qq -y \
+    libevent-dev \
+    libncurses-dev \
+    pkg-config \
+    build-essential \
+    automake \
+    bison \
+    libutf8proc-dev
   cores=$(nproc)
 else
   echo "Unknown OS: $os_name" > $2
   exit 1
 fi
 
-sh autogen.sh
-./configure --enable-utf8proc && make -j"$cores"
-sudo make install
+sh autogen.sh >/dev/null
+./configure --enable-utf8proc >/dev/null && make -s -j"$cores"
+sudo make -s install
 cd $HOME
 rm -rf ~/tmux
 
 # install tpm
-mkdir -p ~/.config/tmux/plugins
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+mkdir -p ~/.tmux/plugins
+if [[ ! -d ~/.tmux/plugins/tpm ]]; then
+  git clone -q https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+fi
