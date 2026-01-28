@@ -8,8 +8,10 @@ log() {
 }
 
 # Remove packages quietly, showing only real errors
+# NOTE: Do NOT use --auto-remove here - it causes cascading removals of
+# important dependencies. Only remove what is explicitly listed.
 apt_remove() {
-  sudo DEBIAN_FRONTEND=noninteractive apt-get remove --auto-remove -qq -y "$@" 2>&1 \
+  sudo DEBIAN_FRONTEND=noninteractive apt-get remove -qq -y "$@" 2>&1 \
     | grep -Ev "(is not installed|Unable to locate package)" \
     || true
 }
@@ -28,8 +30,21 @@ if [[ -d /snap ]] && ! mount | grep -q '/snap'; then
 fi
 
 log "Marking essential packages as manual (prevents cascade removal)"
-sudo apt-mark manual pipewire wireplumber blueman cups 2>/dev/null || true
-sudo apt-mark manual gnome-shell gnome-session gnome-control-center gdm3 2>/dev/null || true
+# Audio/Video stack (needed by most desktops)
+sudo apt-mark manual pipewire pipewire-pulse wireplumber 2>/dev/null || true
+# Bluetooth
+sudo apt-mark manual blueman 2>/dev/null || true
+# Key libraries that tend to get orphaned
+sudo apt-mark manual \
+  python3-pil python3-pexpect \
+  gstreamer1.0-plugins-good gstreamer1.0-plugins-base \
+  libprotobuf32t64 libharfbuzz-icu0 \
+  usb-modeswitch \
+  2>/dev/null || true
+# If using Sway/Wayland with nvidia
+sudo apt-mark manual \
+  libnvidia-egl-wayland1 libnvidia-egl-gbm1 \
+  2>/dev/null || true
 
 log "Removing all snaps"
 if command -v snap &> /dev/null; then
@@ -113,7 +128,12 @@ rmdir ~/Desktop ~/Documents ~/Pictures ~/Public ~/Templates ~/Music ~/Videos 2>/
 mkdir -p ~/.config
 echo "enabled=false" > ~/.config/user-dirs.conf
 
-log "Cleaning up"
-sudo DEBIAN_FRONTEND=noninteractive apt-get autoremove -qq -y
+# NOTE: We intentionally do NOT run apt autoremove here.
+# autoremove can cascade and remove important packages that were pulled in
+# as dependencies of things we want to keep (like sway, pipewire, etc.)
+# Run 'sudo apt autoremove' manually AFTER reviewing what it would remove:
+#   apt list --installed | grep ",automatic" | less
+#   sudo apt autoremove --dry-run
 
 log "Done"
+log "Note: Run 'sudo apt autoremove --dry-run' to review orphaned packages before removing"
