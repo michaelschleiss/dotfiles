@@ -62,3 +62,11 @@ debug/
 # General caches
 .cache/
 *.egg-info/
+
+# pixi
+pixi.toml
+pixi.lock
+.pixi/
+
+# ruff
+.ruff_cache/
