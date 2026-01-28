@@ -30,11 +30,13 @@
   "alwaysThinkingEnabled": true,
   "mcpServers": {
     "paper-search": {
-      "command": "uvx",
+      "command": "uv",
       "args": [
+        "run",
         "--from",
         "git+https://github.com/michaelschleiss/paper-search-mcp",
-        "paper-search-mcp"
+        "-m",
+        "paper_search_mcp.server"
       ]
     }
   }
