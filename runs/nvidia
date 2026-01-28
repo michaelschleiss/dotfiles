@@ -58,8 +58,33 @@ install_nvidia_driver() {
   sudo apt-get install -qq -y nvidia-open >/dev/null
 }
 
+install_nvidia_container_toolkit() {
+  if dpkg -l | grep -q nvidia-container-toolkit; then
+    log "NVIDIA Container Toolkit already installed"
+    return 0
+  fi
+
+  log "Installing NVIDIA Container Toolkit for Docker GPU support..."
+
+  # Add nvidia-container-toolkit repository
+  curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+  curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+  sudo apt-get update -qq
+  sudo apt-get install -qq -y nvidia-container-toolkit
+
+  # Configure Docker to use nvidia runtime
+  sudo nvidia-ctk runtime configure --runtime=docker
+  sudo systemctl restart docker
+
+  log "NVIDIA Container Toolkit installed and Docker configured"
+}
+
 verify_installation() {
   log "Verify after reboot with: nvidia-smi"
+  log "Test Docker GPU access with: docker run --rm --gpus all nvidia/cuda:12.6.0-base-ubuntu22.04 nvidia-smi"
 }
 
 main() {
@@ -82,12 +107,22 @@ main() {
   log "Detected Ubuntu ${ubuntu_ver}"
 
   check_nvidia_gpu
-  remove_existing_nvidia
-  install_cuda_keyring "${ubuntu_ver}"
-  install_nvidia_driver
+
+  # Check if nvidia driver is already installed
+  if have nvidia-smi && nvidia-smi >/dev/null 2>&1; then
+    log "NVIDIA driver already installed and working"
+  else
+    log "Installing NVIDIA driver..."
+    remove_existing_nvidia
+    install_cuda_keyring "${ubuntu_ver}"
+    install_nvidia_driver
+    log "Driver installed - reboot required before container toolkit will work"
+  fi
+
+  install_nvidia_container_toolkit
   verify_installation
 
-  log "Done! Reboot required: sudo reboot"
+  log "Done!"
 }
 
 main "$@"
