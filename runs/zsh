@@ -70,6 +70,13 @@ bindkey '^G' fzf-cd-widget
 EOF
 add_block_to_file "$HOME/.zshrc" "fzf" "$ZSH_FZF"
 
+# --- Go ---
+read -r -d '' ZSH_GO << 'EOF' || true
+export GOPATH=~/.go
+export PATH=$PATH:~/.go/bin
+EOF
+add_block_to_file "$HOME/.zshrc" "go" "$ZSH_GO"
+
 # --- Keybindings ---
 add_block_to_file "$HOME/.zshrc" "zsh-keybindings" '# Ctrl+g: fuzzy cd into projects
 bindkey -s "^g" "cd \"\$(find ~/projects -type d -maxdepth 2 | fzf)\"\n"'
