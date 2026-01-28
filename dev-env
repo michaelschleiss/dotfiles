@@ -59,6 +59,16 @@ copy_dir config  ${XDG_CONFIG_HOME:-$HOME/.config}
 copy_dir local   ${XDG_HOME:-$HOME/.local}
 copy_file env/.fdignore $HOME
 
+# Serena defaults: ensure a non-empty config exists at the legacy path (~/.serena)
+serena_src="$script_dir/config/serena/serena_config.yml"
+serena_dst="$HOME/.serena/serena_config.yml"
+if [[ -f "$serena_src" ]]; then
+  if [[ ! -s "$serena_dst" ]]; then
+    execute mkdir -p "$HOME/.serena"
+    execute cp "$serena_src" "$serena_dst"
+  fi
+fi
+
 log "Configuring git to use global ignore"
 execute git config --global core.excludesfile ~/.config/git/ignore
 log "✓ Git global ignore configured"
