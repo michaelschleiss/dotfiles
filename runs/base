@@ -43,6 +43,12 @@ elif [[ "$os_name" == "Linux" ]]; then
     python3-pip \
     python3-venv
   sudo systemctl enable --now ssh -q
+  # Install Node.js 22 LTS via NodeSource (apt version is too old)
+  if ! command -v node &>/dev/null; then
+    log "Installing Node.js 22 LTS via NodeSource"
+    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+    sudo apt-get install -qq -y nodejs
+  fi
   # Install Rust via rustup (apt version is too old)
   if ! command -v rustup &>/dev/null; then
     log "Installing Rust via rustup"

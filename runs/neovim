@@ -2,6 +2,12 @@
 set -euo pipefail
 source "$(dirname "$0")/lib"
 
+# Ensure base dependencies are installed
+if ! command -v node &>/dev/null; then
+  echo "Node.js not found. Running runs/base first..."
+  "$(dirname "$0")/base"
+fi
+
 TARGET_VERSION="v0.11.5"
 
 if nvim --version 2>/dev/null | head -1 | grep -q "${TARGET_VERSION#v}"; then
@@ -32,9 +38,6 @@ else
     tar -xzf /tmp/lazygit.tar.gz -C /tmp lazygit
     sudo install /tmp/lazygit /usr/local/bin
     rm /tmp/lazygit.tar.gz /tmp/lazygit
-    echo "Installing Node.js 22 LTS via NodeSource..."
-    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-    sudo apt-get install -qq nodejs
     echo "Installing tree-sitter CLI..."
     source ~/.cargo/env
     cargo install tree-sitter-cli@0.25.0
