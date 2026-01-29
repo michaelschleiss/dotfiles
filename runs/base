@@ -40,6 +40,7 @@ elif [[ "$os_name" == "Linux" ]]; then
     ninja-build \
     cmake \
     openssh-server \
+    avahi-utils `# mDNS/Bonjour CLI tools (avahi-browse, avahi-resolve)` \
     python3-pip \
     python3-venv
   sudo systemctl enable --now ssh -q
@@ -79,6 +80,20 @@ if command -v pixi &>/dev/null; then
 else
   log "Installing Pixi"
   curl -fsSL https://pixi.sh/install.sh | bash -s -- --quiet >/dev/null 2>&1
+fi
+
+# --- Mutagen (real-time file sync for remote dev) ---
+if command -v mutagen &>/dev/null; then
+  log "Mutagen already installed"
+else
+  log "Installing Mutagen"
+  if [[ "$os_name" == "Darwin" ]]; then
+    brew install -q mutagen-io/mutagen/mutagen
+  elif [[ "$os_name" == "Linux" ]]; then
+    # Download latest release for Linux
+    curl -fsSL https://github.com/mutagen-io/mutagen/releases/latest/download/mutagen_linux_amd64_v0.18.1.tar.gz | tar -xz -C /tmp
+    sudo mv /tmp/mutagen /usr/local/bin/
+  fi
 fi
 
 # --- Ghostty terminal ---
