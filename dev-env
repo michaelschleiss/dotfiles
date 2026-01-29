@@ -71,17 +71,28 @@ fi
 
 log "Configuring git to use global ignore"
 execute git config --global core.excludesfile ~/.config/git/ignore
-log "✓ Git global ignore configured"
+log "Git global ignore configured"
 
 # Copy Claude commands to global location
 log "Installing Claude commands globally"
 if [[ -d "$script_dir/config/claude/commands" ]]; then
   execute mkdir -p "$HOME/.claude/commands"
+
+  # Backup existing commands if present
+  if [[ -d "$HOME/.claude/commands" ]] && [[ "$(ls -A "$HOME/.claude/commands" 2>/dev/null)" ]]; then
+    backup_dir="$HOME/.claude/commands.backup.$(date +%Y%m%d%H%M%S)"
+    execute cp -r "$HOME/.claude/commands" "$backup_dir"
+    log "Backed up existing commands to $backup_dir"
+  fi
+
   for cmd in "$script_dir/config/claude/commands"/*; do
     if [[ -f "$cmd" ]]; then
       execute cp "$cmd" "$HOME/.claude/commands/"
-      execute chmod +x "$HOME/.claude/commands/$(basename "$cmd")"
+      # Only chmod +x for non-markdown files (actual scripts)
+      if [[ "$cmd" != *.md ]]; then
+        execute chmod +x "$HOME/.claude/commands/$(basename "$cmd")"
+      fi
     fi
   done
-  log "✓ Claude commands installed to ~/.claude/commands/"
+  log "Claude commands installed to ~/.claude/commands/"
 fi
