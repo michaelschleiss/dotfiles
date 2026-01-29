@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+# Machine-specific biometric authentication setup
+# Sets up Touch ID (macOS) or fingerprint reader (Linux) for sudo
+
+set -euo pipefail
+
+# Get current hostname
+HOSTNAME=$(hostname -s)
+
+# Detect OS
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    OS="macos"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    OS="linux"
+else
+    echo "❌ Unsupported OS: $OSTYPE"
+    exit 1
+fi
+
+echo "🖥️  Machine: $HOSTNAME"
+echo "💻  OS: $OS"
+echo ""
+
+# ============================================================================
+# macOS: Auto-detect Touch ID hardware
+# ============================================================================
+if [[ "$OS" == "macos" ]]; then
+    # Check if Touch ID sensor is available and functional
+    if bioutil -r -s 2>&1 | grep -q "Biometrics functionality: 1"; then
+        echo "✅ Touch ID sensor available"
+
+        # Check if pam-reattach is installed (needed for tmux/terminal emulators)
+        PAM_REATTACH_PATH=""
+        if [[ -f "/opt/homebrew/opt/pam-reattach/lib/pam/pam_reattach.so" ]]; then
+            PAM_REATTACH_PATH="/opt/homebrew/opt/pam-reattach/lib/pam/pam_reattach.so"
+        elif [[ -f "/usr/local/opt/pam-reattach/lib/pam/pam_reattach.so" ]]; then
+            PAM_REATTACH_PATH="/usr/local/opt/pam-reattach/lib/pam/pam_reattach.so"
+        fi
+
+        if [[ -z "$PAM_REATTACH_PATH" ]]; then
+            echo "📦 Installing pam-reattach (needed for tmux/Ghostty/iTerm2 support)..."
+            if ! command -v brew &>/dev/null; then
+                echo "❌ Homebrew not found! Install it first:"
+                echo "   /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+                exit 1
+            fi
+
+            brew install pam-reattach
+
+            # Re-check for installation
+            if [[ -f "/opt/homebrew/opt/pam-reattach/lib/pam/pam_reattach.so" ]]; then
+                PAM_REATTACH_PATH="/opt/homebrew/opt/pam-reattach/lib/pam/pam_reattach.so"
+            elif [[ -f "/usr/local/opt/pam-reattach/lib/pam/pam_reattach.so" ]]; then
+                PAM_REATTACH_PATH="/usr/local/opt/pam-reattach/lib/pam/pam_reattach.so"
+            else
+                echo "❌ pam-reattach installation failed!"
+                exit 1
+            fi
+        fi
+
+        echo "✅ pam-reattach found: $PAM_REATTACH_PATH"
+
+        # Check if Touch ID is already configured for sudo
+        if grep -q "^auth.*pam_tid.so" /etc/pam.d/sudo 2>/dev/null; then
+            echo "✅ pam_tid.so already configured"
+
+            # Check if pam_reattach is configured
+            if grep -q "pam_reattach.so" /etc/pam.d/sudo 2>/dev/null; then
+                echo "✅ pam_reattach.so already configured"
+            else
+                echo "📝 Adding pam_reattach.so for tmux/terminal support..."
+                sudo cp /etc/pam.d/sudo "/etc/pam.d/sudo.backup.$(date +%Y%m%d_%H%M%S)"
+
+                # Add pam_reattach BEFORE pam_tid
+                sudo sed -i '' "1i\\
+auth       optional       $PAM_REATTACH_PATH
+" /etc/pam.d/sudo
+
+                echo "✅ pam_reattach.so enabled!"
+            fi
+        else
+            echo "📝 Enabling Touch ID for sudo..."
+            # Backup original file
+            sudo cp /etc/pam.d/sudo "/etc/pam.d/sudo.backup.$(date +%Y%m%d_%H%M%S)"
+
+            # Add both pam_reattach and pam_tid (macOS BSD sed syntax)
+            sudo sed -i '' "1i\\
+auth       optional       $PAM_REATTACH_PATH\\
+auth       sufficient     pam_tid.so
+" /etc/pam.d/sudo
+
+            echo "✅ Touch ID enabled with tmux/terminal support!"
+        fi
+
+        echo ""
+        echo "🔄 Important: Restart your terminal/tmux for changes to take effect"
+        echo "   Test with: sudo -k && sudo ls"
+    else
+        echo "❌ No Touch ID sensor available on this Mac"
+        echo "   This Mac doesn't have Touch ID hardware"
+        exit 1
+    fi
+
+# ============================================================================
+# Linux: Hardware-specific fingerprint setup
+# ============================================================================
+elif [[ "$OS" == "linux" ]]; then
+    # Detect hardware type
+    PRODUCT_NAME=$(cat /sys/class/dmi/id/product_name 2>/dev/null || echo "Unknown")
+    PRODUCT_VERSION=$(cat /sys/class/dmi/id/product_version 2>/dev/null || echo "Unknown")
+
+    echo "🖥️  Hardware: $PRODUCT_NAME $PRODUCT_VERSION"
+
+    # Check for ThinkPad P16v specifically
+    if [[ "$PRODUCT_NAME" =~ "ThinkPad P16v" ]] || [[ "$PRODUCT_VERSION" =~ "ThinkPad P16v" ]]; then
+        echo "💼 ThinkPad P16v detected - Setting up fingerprint reader..."
+
+        # Check if fingerprint software is installed
+        if ! command -v fprintd-enroll &>/dev/null; then
+            echo "📦 Installing fprintd..."
+            sudo apt update && sudo apt install -y fprintd libpam-fprintd
+        fi
+
+        # Check for fingerprint device
+        if lsusb | grep -iq "validity\|fingerprint\|06cb:00"; then
+            echo "✅ Fingerprint reader detected (likely Validity Sensors)"
+        else
+            echo "⚠️  Warning: Fingerprint reader not detected via lsusb"
+            echo "   Continuing anyway - driver may be loaded differently"
+        fi
+
+        # Configure PAM
+        if grep -q "^auth.*pam_fprintd.so" /etc/pam.d/sudo 2>/dev/null; then
+            echo "✅ Fingerprint auth already configured"
+        else
+            echo "📝 Adding fingerprint to /etc/pam.d/sudo..."
+            # Backup original file
+            sudo cp /etc/pam.d/sudo "/etc/pam.d/sudo.backup.$(date +%Y%m%d_%H%M%S)"
+
+            # Add pam_fprintd.so as first auth line (GNU sed syntax)
+            sudo sed -i '1iauth       sufficient     pam_fprintd.so' /etc/pam.d/sudo
+
+            echo "✅ Fingerprint auth enabled!"
+        fi
+
+        # Check if fingerprints are enrolled
+        if fprintd-list "$USER" 2>/dev/null | grep -q "finger"; then
+            echo "✅ Fingerprints already enrolled"
+        else
+            echo ""
+            echo "🖐️  No fingerprints enrolled yet. To enroll:"
+            echo "   Run: fprintd-enroll"
+            echo "   Then test with: sudo ls"
+        fi
+    else
+        echo "⚠️  Unknown Linux hardware: $PRODUCT_NAME $PRODUCT_VERSION"
+        echo "   This script only supports ThinkPad P16v fingerprint setup"
+        echo "   For generic fingerprint setup, install: fprintd libpam-fprintd"
+        exit 1
+    fi
+fi
+
+echo ""
+echo "✨ Done!"
