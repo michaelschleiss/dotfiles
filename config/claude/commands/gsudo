@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Toggle sudo GUI transformation on/off for this session
+
+FLAG_FILE="$HOME/.cache/claude/sudo-gui-enabled"
+
+if [[ -f "$FLAG_FILE" ]]; then
+  rm "$FLAG_FILE"
+  echo "✗ Sudo GUI transformation disabled (default)"
+  echo "Regular sudo will be used"
+else
+  mkdir -p "$(dirname "$FLAG_FILE")"
+  touch "$FLAG_FILE"
+  echo "✓ Sudo GUI transformation enabled"
+  echo "All sudo commands will use macOS GUI password prompts"
+fi
