@@ -51,9 +51,21 @@ tool_name=$(echo "$input" | jq -r '.tool_name // ""')
 command=$(echo "$input" | jq -r '.tool_input.command // ""')
 
 # Only transform Bash tool with sudo commands
-if [[ "$tool_name" == "Bash" ]] && [[ "$command" =~ (^|[[:space:]])sudo[[:space:]] ]]; then
+# Match sudo only as a command (start of line or after shell operators), not within strings
+if [[ "$tool_name" == "Bash" ]] && [[ "$command" =~ (^|[[:space:]\&\|\;])sudo[[:space:]] ]]; then
+  # Verify it's not inside quotes (simple heuristic: odd number of quotes before "sudo")
+  before_sudo="${command%%sudo*}"
+  single_quotes="${before_sudo//[^\']/}"
+  double_quotes="${before_sudo//[^\"]/}"
+
+  # If inside quotes, don't transform
+  if (( ${#single_quotes} % 2 == 1 )) || (( ${#double_quotes} % 2 == 1 )); then
+    respond "allow"
+    exit 0
+  fi
+
   # Extract command after sudo (handle flags like -u, -i, etc.)
-  sudo_cmd=$(echo "$command" | sed -E 's/^(.*[[:space:]])?sudo[[:space:]]+(-[^[:space:]]+[[:space:]]+)*//')
+  sudo_cmd=$(echo "$command" | sed -E 's/^(.*[[:space:]&|;])?sudo[[:space:]]+(-[^[:space:]]+[[:space:]]+)*//')
 
   # CRITICAL: Escape for osascript's do shell script
   # 1. Escape backslashes first (\ -> \\)
