@@ -161,7 +161,7 @@ bindsym $mod+Shift+s exec grim -g "$(slurp)" - | tee ~/.screenshots/$(date +%Y%m
 bindsym $mod+Shift+period exec swaylock -f -c 000000
 
 # Move workspace to output
-bindsym $mod+m move workspace to output left
+bindsym $mod+m move workspace to output next
 
 # Scratchpad
 bindsym $mod+Shift+minus move scratchpad
