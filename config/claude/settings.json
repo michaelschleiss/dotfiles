@@ -33,7 +33,7 @@
       "command": "uv",
       "args": [
         "run",
-        "--from",
+        "--with",
         "git+https://github.com/michaelschleiss/paper-search-mcp",
         "-m",
         "paper_search_mcp.server"
