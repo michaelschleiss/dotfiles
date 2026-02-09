@@ -36,9 +36,7 @@
       "args": [
         "--from",
         "git+https://github.com/michaelschleiss/paper-search-mcp",
-        "python",
-        "-m",
-        "paper_search_mcp.server"
+        "paper-search-mcp"
       ]
     }
   },

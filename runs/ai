@@ -151,26 +151,24 @@ install_codex() {
 }
 
 install_uv() {
-  if have uvx; then
-    log "uv already installed: $(uv --version 2>/dev/null || echo ok)"
+  # Always use the standard installer (not Homebrew) so that both uv and uvx
+  # land in ~/.local/bin/ — the canonical cross-platform location used by MCP
+  # configs. Homebrew puts them in /opt/homebrew/bin/ which GUI apps and MCP
+  # server spawners can't find.
+  if [[ -x "${HOME}/.local/bin/uvx" ]]; then
+    log "uv already installed: $("${HOME}/.local/bin/uv" --version 2>/dev/null || echo ok)"
     return 0
   fi
 
-  log "Installing uv"
-  curl -LsSf https://astral.sh/uv/install.sh | sh
+  log "Installing uv (standard installer -> ~/.local/bin/)"
+  curl -LsSf https://astral.sh/uv/install.sh | env UV_NO_MODIFY_PATH=1 sh
 
-  # Source the env to make uv available immediately
-  if [[ -f "${HOME}/.local/bin/env" ]]; then
-    # shellcheck disable=SC1091
-    source "${HOME}/.local/bin/env"
-  fi
-
-  if have uvx; then
-    log "Installed uv: $(uv --version 2>/dev/null || echo ok)"
+  if [[ -x "${HOME}/.local/bin/uvx" ]]; then
+    log "Installed uv: $("${HOME}/.local/bin/uv" --version 2>/dev/null || echo ok)"
     return 0
   fi
 
-  echo "uv installed but 'uvx' is not on PATH; ensure ~/.local/bin is in PATH." >&2
+  echo "uv install failed: ${HOME}/.local/bin/uvx not found" >&2
   return 1
 }
 
