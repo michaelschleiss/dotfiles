@@ -32,11 +32,11 @@
   "alwaysThinkingEnabled": true,
   "mcpServers": {
     "paper-search": {
-      "command": "uv",
+      "command": "uvx",
       "args": [
-        "run",
         "--from",
         "git+https://github.com/michaelschleiss/paper-search-mcp",
+        "python",
         "-m",
         "paper_search_mcp.server"
       ]
