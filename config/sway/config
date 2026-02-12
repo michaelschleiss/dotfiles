@@ -181,7 +181,8 @@ for_window [app_id="scratchpad-term"] {
     border pixel 3
 }
 
-# Input config (uncomment and adjust as needed)
-# input type:keyboard {
-#     xkb_layout us
-# }
+# Input config
+input type:keyboard {
+    xkb_layout us
+    xkb_options ctrl:nocaps
+}
