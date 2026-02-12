@@ -15,20 +15,6 @@ apply_patch_freeform = true
 remote_models = true
 undo = true
 
-[mcp_servers.serena]
-command = "uvx"
-args = [
-  "--from",
-  "git+https://github.com/oraios/serena",
-  "serena",
-  "start-mcp-server",
-  "--context",
-  "codex",
-]
-
-[mcp_servers.serena.env]
-SERENA_HOME = "/Users/michael/.config/serena"
-
 [mcp_servers.context7]
 command = "npx"
 args = ["-y", "@upstash/context7-mcp"]
