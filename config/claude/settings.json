@@ -63,7 +63,10 @@
         "python",
         "-m",
         "paper_search_mcp.server"
-      ]
+      ],
+      "env": {
+        "PATH": "${HOME}/.local/bin:${PATH}"
+      }
     }
   }
 }

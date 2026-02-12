@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# PreToolUse hook to transform sudo commands to macOS GUI prompts
+# PreToolUse hook to transform sudo commands to GUI prompts
+# macOS: osascript dialog, Linux: zenity via SUDO_ASKPASS
 # Only active when ~/.cache/claude/sudo-gui-enabled exists
 
 set -euo pipefail
@@ -64,19 +65,18 @@ if [[ "$tool_name" == "Bash" ]] && [[ "$command" =~ (^|[[:space:]\&\|\;])sudo[[:
     exit 0
   fi
 
-  # Extract command after sudo (handle flags like -u, -i, etc.)
-  sudo_cmd=$(echo "$command" | sed -E 's/^(.*[[:space:]&|;])?sudo[[:space:]]+(-[^[:space:]]+[[:space:]]+)*//')
-
-  # CRITICAL: Escape for osascript's do shell script
-  # 1. Escape backslashes first (\ -> \\)
-  # 2. Escape double quotes (" -> \")
-  escaped_cmd="${sudo_cmd//\\/\\\\}"
-  escaped_cmd="${escaped_cmd//\"/\\\"}"
-
-  # Build the osascript command (use single quotes for outer shell)
-  new_command="osascript -e 'do shell script \"${escaped_cmd}\" with administrator privileges'"
-
-  respond "allow" "Transformed sudo to macOS GUI prompt" "$new_command"
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    # macOS: use osascript GUI dialog
+    sudo_cmd=$(echo "$command" | sed -E 's/^(.*[[:space:]&|;])?sudo[[:space:]]+(-[^[:space:]]+[[:space:]]+)*//')
+    escaped_cmd="${sudo_cmd//\\/\\\\}"
+    escaped_cmd="${escaped_cmd//\"/\\\"}"
+    new_command="osascript -e 'do shell script \"${escaped_cmd}\" with administrator privileges'"
+    respond "allow" "Transformed sudo to macOS GUI prompt" "$new_command"
+  else
+    # Linux: use SUDO_ASKPASS with zenity
+    new_command="SUDO_ASKPASS=\"\${XDG_CONFIG_HOME:-\$HOME/.config}/claude/hooks/askpass-zenity.sh\" ${command//sudo/sudo -A}"
+    respond "allow" "Transformed sudo to zenity GUI prompt" "$new_command"
+  fi
 else
   respond "allow"
 fi
