@@ -119,6 +119,11 @@ main() {
     log "Driver installed - reboot required before container toolkit will work"
   fi
 
+  # Enable suspend/resume/hibernate services (required when
+  # PreserveVideoMemoryAllocations is set, otherwise suspend fails with -EIO)
+  log "Enabling NVIDIA power management services..."
+  sudo systemctl enable nvidia-suspend.service nvidia-resume.service nvidia-hibernate.service
+
   install_nvidia_container_toolkit
   verify_installation
 
