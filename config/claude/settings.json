@@ -10,7 +10,6 @@
     "SERENA_HOME": "/Users/michael/.config/serena",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
-  "teammateMode": "auto",
   "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
@@ -19,28 +18,6 @@
     "deny": [],
     "ask": [],
     "defaultMode": "default"
-  },
-  "enabledPlugins": {
-    "ralph-loop@claude-plugins-official": true,
-    "code-review@claude-plugins-official": true,
-    "code-simplifier@claude-plugins-official": true,
-    "commit-commands@claude-plugins-official": true,
-    "serena@claude-plugins-official": true,
-    "context7@claude-plugins-official": true,
-    "feature-dev@claude-plugins-official": true
-  },
-  "alwaysThinkingEnabled": true,
-  "mcpServers": {
-    "paper-search": {
-      "command": "uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/michaelschleiss/paper-search-mcp",
-        "python",
-        "-m",
-        "paper_search_mcp.server"
-      ]
-    }
   },
   "hooks": {
     "PreToolUse": [
@@ -54,5 +31,39 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "ralph-loop@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "atlassian@claude-plugins-official": true,
+    "huggingface-skills@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "claude-code-setup@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "clangd-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": true,
+    "hookify@claude-plugins-official": true,
+    "explanatory-output-style@claude-plugins-official": true,
+    "learning-output-style@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
+  },
+  "alwaysThinkingEnabled": true,
+  "teammateMode": "auto",
+  "mcpServers": {
+    "paper-search": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/michaelschleiss/paper-search-mcp",
+        "python",
+        "-m",
+        "paper_search_mcp.server"
+      ]
+    }
   }
 }
