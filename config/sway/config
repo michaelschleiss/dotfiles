@@ -160,6 +160,9 @@ bindsym $mod+Shift+s exec grim -g "$(slurp)" - | tee ~/.screenshots/$(date +%Y%m
 # Lock screen
 bindsym $mod+Shift+period exec swaylock -f -c 000000
 
+# Suspend on lid close
+bindswitch --reload --locked lid:on exec systemctl suspend
+
 # Move workspace to output
 bindsym $mod+m move workspace to output next
 
@@ -178,7 +181,8 @@ for_window [app_id="scratchpad-term"] {
     border pixel 3
 }
 
-# Input config (uncomment and adjust as needed)
-# input type:keyboard {
-#     xkb_layout us
-# }
+# Input config
+input type:keyboard {
+    xkb_layout us
+    xkb_options ctrl:nocaps
+}
