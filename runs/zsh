@@ -78,6 +78,10 @@ EOF
 add_block_to_file "$HOME/.zshrc" "go" "$ZSH_GO"
 
 # --- Keybindings ---
+add_block_to_file "$HOME/.zshrc" "zsh-editing-mode" 'bindkey -e
+bindkey -A emacs main
+set -o emacs'
+
 add_block_to_file "$HOME/.zshrc" "zsh-keybindings" '# Ctrl+g: fuzzy cd into projects
 bindkey -s "^g" "cd \"\$(find ~/projects -type d -maxdepth 2 | fzf)\"\n"'
 
