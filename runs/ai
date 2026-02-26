@@ -190,10 +190,36 @@ install_claude_code() {
   return 1
 }
 
+configure_claude_mcp() {
+  local claude_json="${HOME}/.config/claude/.claude.json"
+  if [[ ! -f "${claude_json}" ]]; then
+    log "Skipping MCP setup: ${claude_json} not found (run claude once first)"
+    return 0
+  fi
+
+  log "Configuring paper-search MCP server (overrides existing)"
+  python3 -c "
+import json, pathlib, sys
+p = pathlib.Path(sys.argv[1])
+d = json.loads(p.read_text())
+servers = d.get('mcpServers', {})
+servers['paper-search'] = {
+    '_managed_by': 'dev-env/runs/ai — do not edit, will be overridden',
+    'type': 'stdio',
+    'command': 'uvx',
+    'args': ['--from', 'git+https://github.com/michaelschleiss/paper-search-mcp', 'paper-search-mcp'],
+    'env': {'PATH': '\${HOME}/.local/bin:\${PATH}'}
+}
+d['mcpServers'] = servers
+p.write_text(json.dumps(d, indent=2) + '\n')
+" "${claude_json}"
+}
+
 main() {
   install_uv
   install_codex
   install_claude_code
+  configure_claude_mcp
 
   # Shell integration
   add_block_to_file "$HOME/.zprofile" "ai-env" 'export CLAUDE_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/claude"
