@@ -40,7 +40,8 @@ copy_dir() {
       # Template: only copy if not exists
       execute rsync -a --ignore-existing "$dir" "$to/$name/"
     elif [[ "$name" == "claude" || "$name" == "codex" || "$name" == "gh" ]]; then
-      execute rsync -a "$dir" "$to/$name/"
+      # No --delete: preserve local state (.claude.json is managed by runs/ai)
+      execute rsync -a --exclude='.claude.json*' "$dir" "$to/$name/"
     else
       execute rsync -a --delete "$dir" "$to/$name/"
     fi
