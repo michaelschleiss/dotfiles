@@ -22,11 +22,11 @@ window#waybar {
     color: #1e1e2e;
 }
 
-#network {
-    margin-bottom: 10px;
+#battery.warning {
+    color: #fab387;
 }
 
-#network.disconnected {
+#battery.critical {
     color: #f38ba8;
 }
 
