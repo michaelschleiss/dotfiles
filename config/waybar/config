@@ -5,7 +5,7 @@
     "margin": 3,
     "modules-left": ["sway/workspaces", "sway/mode"],
     "modules-center": ["clock"],
-    "modules-right": ["custom/notification", "network", "tray"],
+    "modules-right": ["custom/notification", "battery", "tray"],
 
     "sway/workspaces": {
         "disable-scroll": true
@@ -18,18 +18,18 @@
         "tooltip": true,
         "tooltip-format": "{:%A, %B %d, %Y}"
     },
-    "network": {
-        "interface": "wl*",
-        "format-wifi": "",
-        "format-ethernet": "",
-        "format-disconnected": "⚠",
-        "tooltip-format-wifi": "{essid}\nSignal: {signalStrength}% ({signaldBm} dBm)\n{ipaddr}/{cidr}\nGateway: {gwaddr}",
-        "tooltip-format-ethernet": "{ifname}\n{ipaddr}/{cidr}",
-        "tooltip-format-disconnected": "Disconnected",
-        "on-click": "nm-connection-editor",
-        "interval": 5
+"battery": {
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon}",
+        "format-charging": "󰂄",
+        "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+        "tooltip-format": "{capacity}% — {timeTo}"
     },
     "tray": {
+        "icon-size": 16,
         "spacing": 10
     },
     "custom/notification": {

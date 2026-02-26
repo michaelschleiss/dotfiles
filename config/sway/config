@@ -181,6 +181,9 @@ for_window [app_id="scratchpad-term"] {
     border pixel 3
 }
 
+# Floating nmtui window
+for_window [title="nmtui"] floating enable
+
 # Input config
 input type:keyboard {
     xkb_layout us
