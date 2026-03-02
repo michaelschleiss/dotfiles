@@ -4,6 +4,7 @@ set -euo pipefail
 # ThinkPad P16v specific configuration
 # - Fixes brightness function keys via GRUB kernel parameter
 # - Adds user to video group for brightnessctl without sudo
+# - Configures hibernate: swap file, GRUB resume, initramfs, UPower
 
 log() {
   echo "[p16v] $*"
@@ -30,6 +31,8 @@ log "Detected: $product_family"
 GRUB_FILE="/etc/default/grub"
 PARAM="acpi_osi=! acpi_osi='Windows 2021'"
 
+GRUB_CHANGED=false
+
 if [[ -f "$GRUB_FILE" ]]; then
   if grep -q "acpi_osi=" "$GRUB_FILE"; then
     log "GRUB already has acpi_osi parameter - check it manually"
@@ -38,11 +41,104 @@ if [[ -f "$GRUB_FILE" ]]; then
     log "Adding $PARAM to GRUB for brightness/volume keys"
     sudo cp "$GRUB_FILE" "$GRUB_FILE.bak"
     sudo sed -i "s/GRUB_CMDLINE_LINUX_DEFAULT=\"/GRUB_CMDLINE_LINUX_DEFAULT=\"$PARAM /" "$GRUB_FILE"
-    sudo update-grub
+    GRUB_CHANGED=true
     log "Reboot required for brightness/volume keys to work"
   fi
 else
   log "Warning: $GRUB_FILE not found"
+fi
+
+# --- Hibernate support (swap file + GRUB resume + initramfs + UPower) ---
+SWAP_FILE="/swap.img"
+
+# Swap must be >= RAM for hibernate
+SWAP_SIZE_GB=$(awk '/MemTotal/ {printf "%d", $2/1024/1024 + 1}' /proc/meminfo)
+
+current_swap_gb=0
+if [[ -f "$SWAP_FILE" ]]; then
+  current_swap_gb=$(stat -c%s "$SWAP_FILE" 2>/dev/null | awk '{printf "%d", $1/1024/1024/1024}')
+fi
+
+if [[ "$current_swap_gb" -lt "$SWAP_SIZE_GB" ]]; then
+  log "Creating/resizing swap file to ${SWAP_SIZE_GB}GB (currently ${current_swap_gb}GB)"
+  sudo swapoff "$SWAP_FILE" 2>/dev/null || true
+  sudo fallocate -l "${SWAP_SIZE_GB}G" "$SWAP_FILE"
+  sudo chmod 600 "$SWAP_FILE"
+  sudo mkswap "$SWAP_FILE"
+  sudo swapon "$SWAP_FILE"
+  log "Swap file resized to ${SWAP_SIZE_GB}GB"
+else
+  log "Swap file already ${current_swap_gb}GB (>= ${SWAP_SIZE_GB}GB needed)"
+fi
+
+# Add/update resume= and resume_offset= in GRUB for hibernate
+if [[ -f "$GRUB_FILE" ]]; then
+  resume_dev=$(findmnt -no SOURCE / | head -1)
+  resume_uuid=$(blkid -s UUID -o value "$resume_dev")
+  resume_offset=$(sudo filefrag -v "$SWAP_FILE" | awk '$1=="0:" {print substr($4, 1, length($4)-2)}')
+
+  if ! grep -q "resume=UUID=" "$GRUB_FILE"; then
+    log "Adding resume=UUID=$resume_uuid resume_offset=$resume_offset to GRUB"
+    sudo sed -i "s|GRUB_CMDLINE_LINUX_DEFAULT=\"|GRUB_CMDLINE_LINUX_DEFAULT=\"resume=UUID=$resume_uuid resume_offset=$resume_offset |" "$GRUB_FILE"
+    GRUB_CHANGED=true
+  else
+    # Update UUID if it changed (e.g. after mkswap on resize)
+    current_uuid=$(grep -oP 'resume=UUID=\K[a-f0-9-]+' "$GRUB_FILE" || echo "")
+    if [[ "$current_uuid" != "$resume_uuid" ]]; then
+      log "Updating resume UUID from $current_uuid to $resume_uuid"
+      sudo sed -i "s/resume=UUID=$current_uuid/resume=UUID=$resume_uuid/" "$GRUB_FILE"
+      GRUB_CHANGED=true
+    fi
+    # Update offset if it changed
+    current_offset=$(grep -oP 'resume_offset=\K[0-9]+' "$GRUB_FILE" || echo "")
+    if [[ "$current_offset" != "$resume_offset" ]]; then
+      log "Updating resume_offset from $current_offset to $resume_offset"
+      sudo sed -i "s/resume_offset=$current_offset\b/resume_offset=$resume_offset/" "$GRUB_FILE"
+      GRUB_CHANGED=true
+    fi
+  fi
+fi
+
+# Run update-grub once if either brightness or hibernate section changed it
+if [[ "$GRUB_CHANGED" == "true" ]]; then
+  sudo update-grub
+fi
+
+# Disable initramfs swap device validation (not needed for swap files).
+# The kernel handles resume via GRUB cmdline params (resume= + resume_offset=).
+if grep -q "^RESUME=none" /etc/initramfs-tools/conf.d/resume 2>/dev/null; then
+  log "initramfs resume already set to none (kernel cmdline handles swap file resume)"
+else
+  log "Setting initramfs RESUME=none (swap file resume handled by kernel cmdline)"
+  echo "RESUME=none" | sudo tee /etc/initramfs-tools/conf.d/resume > /dev/null
+  sudo update-initramfs -u
+fi
+
+# Configure UPower for hibernate on critical battery
+UPOWER_CONF="/etc/UPower/UPower.conf"
+if [[ -f "$UPOWER_CONF" ]]; then
+  needs_restart=false
+
+  if grep -q "^CriticalPowerAction=Hibernate" "$UPOWER_CONF"; then
+    log "UPower CriticalPowerAction already set to Hibernate"
+  else
+    log "Setting UPower CriticalPowerAction=Hibernate"
+    sudo sed -i 's/^CriticalPowerAction=.*/CriticalPowerAction=Hibernate/' "$UPOWER_CONF"
+    needs_restart=true
+  fi
+
+  if grep -q "^PercentageAction=5" "$UPOWER_CONF"; then
+    log "UPower PercentageAction already set to 5"
+  else
+    log "Setting UPower PercentageAction=5"
+    sudo sed -i 's/^PercentageAction=.*/PercentageAction=5/' "$UPOWER_CONF"
+    needs_restart=true
+  fi
+
+  sudo systemctl enable upower
+  if [[ "$needs_restart" == "true" ]]; then
+    sudo systemctl restart upower
+  fi
 fi
 
 # --- Video group for brightnessctl without sudo ---
