@@ -12,7 +12,7 @@ os_name="$(uname -s)"
 if [[ "$os_name" == "Linux" ]]; then
   log "Installing zsh and plugins"
   sudo apt-get update -qq
-  sudo apt-get install -qq -y zsh zsh-syntax-highlighting
+  sudo apt-get install -qq -y zsh zsh-syntax-highlighting zsh-autosuggestions
 fi
 
 # --- Set zsh as default shell ---
@@ -84,5 +84,18 @@ set -o emacs'
 
 add_block_to_file "$HOME/.zshrc" "zsh-keybindings" '# Ctrl+g: fuzzy cd into projects
 bindkey -s "^g" "cd \"\$(find ~/projects -type d -maxdepth 2 | fzf)\"\n"'
+
+# --- Prompt ---
+add_block_to_file "$HOME/.zshrc" "zsh-prompt" "PS1='%n@%m %~ %# '"
+
+# --- Options ---
+add_block_to_file "$HOME/.zshrc" "zsh-options" 'setopt autocd'
+
+# --- Plugins ---
+read -r -d '' ZSH_PLUGINS << 'EOF' || true
+source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
+source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh 2>/dev/null
+EOF
+add_block_to_file "$HOME/.zshrc" "zsh-plugins" "$ZSH_PLUGINS"
 
 log "Done - restart terminal or run: exec zsh"
