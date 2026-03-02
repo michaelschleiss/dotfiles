@@ -73,6 +73,27 @@ return {
 			})
 			vim.lsp.enable("ltex")
 
+			-- Setup ltex_extra and disable ltex for the scratchpad via LspAttach autocommand
+			vim.api.nvim_create_autocmd("LspAttach", {
+				callback = function(args)
+					local client = vim.lsp.get_client_by_id(args.data.client_id)
+					if client and client.name == "ltex" then
+						if vim.api.nvim_buf_get_name(args.buf):match("scratchpad%.md$") then
+							vim.schedule(function()
+								vim.lsp.buf_detach_client(args.buf, client.id)
+								local ns = vim.lsp.diagnostic.get_namespace(client.id)
+								if ns then vim.diagnostic.reset(ns, args.buf) end
+							end)
+						else
+							require("ltex_extra").setup({
+								load_langs = { "en-US", "de-DE" },
+								path = vim.fn.expand("~") .. "/.local/share/ltex",
+							})
+						end
+					end
+				end,
+			})
+
 			vim.lsp.config("pyright", {
 				cmd = { "pyright-langserver", "--stdio" },
 				filetypes = { "python" },
@@ -133,7 +154,7 @@ return {
 			})
 			vim.lsp.enable("taplo")
 
-			-- Filter out noisy texlab diagnostics, but leave other LSPs (like ltex) untouched.
+			-- Filter out noisy texlab diagnostics and ltex on scratchpad
 			do
 				local orig_publish = vim.lsp.handlers["textDocument/publishDiagnostics"]
 
@@ -144,6 +165,10 @@ return {
 							result.diagnostics = vim.tbl_filter(function(d)
 								return d.message ~= "Undefined reference" and d.message ~= "Unused label"
 							end, result.diagnostics)
+						end
+						
+						if client and client.name == "ltex" and result.uri and result.uri:match("scratchpad%.md$") then
+							result.diagnostics = {}
 						end
 					end
 					return orig_publish(err, result, ctx, config)
