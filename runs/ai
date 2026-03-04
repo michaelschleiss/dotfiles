@@ -215,10 +215,35 @@ p.write_text(json.dumps(d, indent=2) + '\n')
 " "${claude_json}"
 }
 
+install_claude_browse() {
+  local repo="https://github.com/michaelschleiss/claude-browse.git"
+  local clone_dir="${HOME}/projects/claude-browse"
+  local install_dir="${HOME}/.local/bin"
+  local bin="${install_dir}/claude-browse"
+
+  mkdir -p "${install_dir}"
+
+  if [[ -d "${clone_dir}" ]]; then
+    log "Updating claude-browse"
+    git -C "${clone_dir}" pull --ff-only 2>/dev/null || true
+  else
+    log "Installing claude-browse"
+    git clone "${repo}" "${clone_dir}"
+  fi
+
+  if [[ -L "${bin}" || ! -e "${bin}" ]]; then
+    ln -sf "${clone_dir}/claude-browse" "${bin}"
+    log "Linked claude-browse -> ${bin}"
+  else
+    log "claude-browse already exists at ${bin} (not a symlink, skipping)"
+  fi
+}
+
 main() {
   install_uv
   install_codex
   install_claude_code
+  install_claude_browse
   configure_claude_mcp
 
   # Shell integration
