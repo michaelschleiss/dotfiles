@@ -141,6 +141,25 @@ if [[ -f "$UPOWER_CONF" ]]; then
   fi
 fi
 
+# --- Bluetooth: allow HID input from paired-but-not-bonded devices ---
+# Some Keychron keyboards pair but don't bond over classic BT, causing BlueZ
+# to reject HID input. Setting ClassicBondedOnly=false allows them to work.
+BT_INPUT_CONF="/etc/bluetooth/input.conf"
+if [[ -f "$BT_INPUT_CONF" ]]; then
+  if grep -q "^ClassicBondedOnly=false" "$BT_INPUT_CONF"; then
+    log "Bluetooth ClassicBondedOnly already disabled"
+  else
+    log "Setting ClassicBondedOnly=false in $BT_INPUT_CONF"
+    if grep -q "^#\?ClassicBondedOnly=" "$BT_INPUT_CONF"; then
+      sudo sed -i 's/^#\?ClassicBondedOnly=.*/ClassicBondedOnly=false/' "$BT_INPUT_CONF"
+    else
+      echo "ClassicBondedOnly=false" | sudo tee -a "$BT_INPUT_CONF" > /dev/null
+    fi
+    sudo systemctl restart bluetooth
+    log "Bluetooth service restarted"
+  fi
+fi
+
 # --- Video group for brightnessctl without sudo ---
 if groups "$USER" | grep -qw video; then
   log "User already in video group"
