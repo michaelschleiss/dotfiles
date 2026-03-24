@@ -124,7 +124,7 @@ else
   cat <<'EOF' | sudo tee "$LOGIND_LID_CONF" > /dev/null
 [Login]
 HandleLidSwitch=hibernate
-HandleLidSwitchExternalPower=ignore
+HandleLidSwitchExternalPower=lock
 HandleLidSwitchDocked=ignore
 EOF
   sudo systemctl restart systemd-logind
