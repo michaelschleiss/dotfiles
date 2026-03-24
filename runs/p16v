@@ -114,6 +114,22 @@ else
   sudo update-initramfs -u
 fi
 
+# Configure logind lid switch behavior
+LOGIND_LID_CONF="/etc/systemd/logind.conf.d/lid.conf"
+sudo mkdir -p /etc/systemd/logind.conf.d
+if [[ -f "$LOGIND_LID_CONF" ]] && grep -q "^HandleLidSwitch=hibernate" "$LOGIND_LID_CONF"; then
+  log "logind lid switch already configured"
+else
+  log "Configuring logind lid switch (hibernate on battery, ignore on AC/docked)"
+  cat <<'EOF' | sudo tee "$LOGIND_LID_CONF" > /dev/null
+[Login]
+HandleLidSwitch=hibernate
+HandleLidSwitchExternalPower=ignore
+HandleLidSwitchDocked=ignore
+EOF
+  sudo systemctl restart systemd-logind
+fi
+
 # Configure UPower for hibernate on critical battery
 UPOWER_CONF="/etc/UPower/UPower.conf"
 if [[ -f "$UPOWER_CONF" ]]; then
