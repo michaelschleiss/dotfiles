@@ -41,6 +41,13 @@ sudo apt-get install -qq -y \
   kanshi \
   wob # OSD bar for volume/brightness feedback
 
+# Keep desktop cursor settings aligned with the wlroots/GTK config.
+if command -v gsettings &>/dev/null; then
+  log "Setting cursor theme to Yaru"
+  gsettings set org.gnome.desktop.interface cursor-theme 'Yaru' || true
+  gsettings set org.gnome.desktop.interface cursor-size 24 || true
+fi
+
 # Hybrid GPU setup (Intel + Nvidia)
 if lspci | grep -qi nvidia && lspci | grep -qi "vga.*intel"; then
   log "Hybrid GPU detected (Intel + Nvidia)"
