@@ -150,6 +150,39 @@ install_codex() {
   install_codex_from_github
 }
 
+install_rtk() {
+  ensure_cmd jq jq
+  ensure_cmd curl curl
+
+  local install_dir="${HOME}/.local/bin"
+  mkdir -p "${install_dir}"
+
+  local installed_version=""
+  if [[ -x "${install_dir}/rtk" ]]; then
+    installed_version="$("${install_dir}/rtk" --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
+  fi
+
+  if [[ -n "${installed_version}" ]]; then
+    log "Updating rtk (current: ${installed_version})"
+  else
+    log "Installing rtk"
+  fi
+
+  curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/master/install.sh | env RTK_INSTALL_DIR="${install_dir}" sh
+
+  if [[ ! -x "${install_dir}/rtk" ]]; then
+    echo "RTK installation failed: ${install_dir}/rtk not found" >&2
+    return 1
+  fi
+
+  if ! "${install_dir}/rtk" gain >/dev/null 2>&1; then
+    echo "RTK installation verification failed: rtk gain did not succeed" >&2
+    return 1
+  fi
+
+  log "Installed rtk: $("${install_dir}/rtk" --version 2>/dev/null || echo ok)"
+}
+
 install_uv() {
   # Always use the standard installer (not Homebrew) so that both uv and uvx
   # land in ~/.local/bin/ — the canonical cross-platform location used by MCP
@@ -241,6 +274,7 @@ install_claude_browse() {
 
 main() {
   install_uv
+  install_rtk
   install_codex
   install_claude_code
   install_claude_browse
