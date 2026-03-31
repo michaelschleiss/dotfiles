@@ -60,3 +60,5 @@ For multiple research questions: Use the Task tool with general-purpose agents i
 
 The /research slash command is available for explicit invocation.
 </research-methodology>
+
+@RTK.md
