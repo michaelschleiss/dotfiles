@@ -9,6 +9,9 @@ font pango:JetBrainsMono Nerd Font 10
 default_border pixel 2
 default_floating_border pixel 2
 
+# Cursor theme
+seat * xcursor_theme Yaru 24
+
 # Gaps
 gaps inner 0
 gaps outer 0
@@ -119,7 +122,7 @@ mode "resize" {
 bindsym $mod+r mode "resize"
 
 # Status bar
-exec waybar
+exec_always sh -c 'pkill -x waybar; exec waybar'
 
 # Background
 output * bg #1e1e2e solid_color
