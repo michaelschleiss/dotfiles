@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+source "$(dirname "$0")/lib"
 
 # Dronecore (Jetson) SSH setup - works on macOS and Linux
 
@@ -7,74 +8,133 @@ log() {
   echo "[dronecore] $*"
 }
 
-# Function for macOS: enables internet sharing via pfctl then SSHs in
-DRONECORE_FUNC_MAC='dronecore() {
-  # Auto-detect default internet interface, or use provided argument
-  local inet_if="${1:-$(route get default 2>/dev/null | awk "/interface:/ {print \$2}")}"
+read -r -d '' DRONECORE_FUNC_MAC <<'EOF' || true
+dronecore() {
+  local inet_if="${1:-$(route get default 2>/dev/null | awk '/interface:/ {print $2}')}"
+  local drone_if pf_rules pf_anchor="com.apple/dronecore"
+
   if [[ -z "$inet_if" ]]; then
     echo "[dronecore] ERROR: Could not detect internet interface. Pass it as argument: dronecore en0"
     return 1
   fi
-  # Check if dronecore is connected
-  if ! ifconfig | grep -q "inet 192.168.55"; then
-    echo "[dronecore] ERROR: No interface on 192.168.55.x - is dronecore connected?"
-    return 1
-  fi
-  # Enable IP forwarding + NAT with pass rules
-  sudo sysctl -w net.inet.ip.forwarding=1 >/dev/null 2>&1
-  echo "nat on $inet_if from 192.168.55.0/24 to any -> ($inet_if)
-pass from 192.168.55.0/24 to any keep state
-pass from any to 192.168.55.0/24 keep state" | sudo pfctl -ef - 2>/dev/null
-  echo "[dronecore] NAT enabled on $inet_if"
-  # Sync local terminfo to Jetson so $TERM is recognized
-  infocmp -x 2>/dev/null | sshpass -p dronecore ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null dcs_user@192.168.55.1 'cat > /tmp/.terminfo_sync && echo dronecore | sudo -S tic -x /tmp/.terminfo_sync 2>/dev/null && rm /tmp/.terminfo_sync'
-  # SSH in
-  sshpass -p dronecore ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null dcs_user@192.168.55.1
-}'
 
-# Function for Linux: enables internet sharing via iptables then SSHs in
-DRONECORE_FUNC_LINUX='dronecore() {
-  # Check if dronecore is connected
-  if ! ip addr | grep -q "inet 192.168.55"; then
+  drone_if="$(ifconfig | awk '
+    /^[^ \t]/ { iface=$1; sub(/:$/, "", iface) }
+    /inet 192\.168\.55\./ { print iface; exit }
+  ')"
+  if [[ -z "$drone_if" ]]; then
     echo "[dronecore] ERROR: No interface on 192.168.55.x - is dronecore connected?"
     return 1
   fi
-  # Enable IP forwarding
-  sudo sysctl -w net.ipv4.ip_forward=1 >/dev/null 2>&1
-  # Add iptables rules (idempotent via -C check)
+
+  echo "[dronecore] uplink=$inet_if drone_if=$drone_if"
+
+  if ! sudo -v; then
+    echo "[dronecore] ERROR: sudo authentication failed"
+    return 1
+  fi
+
+  sudo sysctl -w net.inet.ip.forwarding=1 >/dev/null
+
+  pf_rules="$(mktemp -t dronecore.pf.XXXXXX)"
+  command cat >"$pf_rules" <<PF
+nat on $inet_if from $drone_if:network to any -> ($inet_if)
+pass from $drone_if:network to any keep state
+pass from any to $drone_if:network keep state
+PF
+
+  sudo pfctl -E >/dev/null 2>&1 || true
+  sudo pfctl -a "$pf_anchor" -f "$pf_rules" >/dev/null
+  rm -f "$pf_rules"
+  echo "[dronecore] NAT enabled on $inet_if for $drone_if"
+
+  if command -v sshpass >/dev/null 2>&1; then
+    sshpass -p dronecore ssh \
+      -o StrictHostKeyChecking=no \
+      -o UserKnownHostsFile=/dev/null \
+      -o LogLevel=ERROR \
+      dcs_user@192.168.55.1
+  elif command -v expect >/dev/null 2>&1; then
+    expect -c '
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR dcs_user@192.168.55.1
+expect {
+  -re "(?i)are you sure you want to continue connecting" { send "yes\r"; exp_continue }
+  -re "(?i)password:" { send "dronecore\r" }
+  eof { exit 1 }
+}
+interact
+'
+  else
+    echo "[dronecore] ERROR: Install sshpass or expect"
+    return 1
+  fi
+}
+EOF
+
+read -r -d '' DRONECORE_FUNC_LINUX <<'EOF' || true
+dronecore() {
+  local drone_if
+
+  drone_if="$(ip -o -4 addr show | awk '$4 ~ /^192\.168\.55\./ { print $2; exit }')"
+  if [[ -z "$drone_if" ]]; then
+    echo "[dronecore] ERROR: No interface on 192.168.55.x - is dronecore connected?"
+    return 1
+  fi
+
+  echo "[dronecore] drone_if=$drone_if"
+
+  if ! sudo -v; then
+    echo "[dronecore] ERROR: sudo authentication failed"
+    return 1
+  fi
+
+  sudo sysctl -w net.ipv4.ip_forward=1 >/dev/null
   sudo iptables -t nat -C POSTROUTING -s 192.168.55.0/24 -j MASQUERADE 2>/dev/null || \
     sudo iptables -t nat -A POSTROUTING -s 192.168.55.0/24 -j MASQUERADE
   sudo iptables -C FORWARD -s 192.168.55.0/24 -j ACCEPT 2>/dev/null || \
     sudo iptables -I FORWARD 1 -s 192.168.55.0/24 -j ACCEPT
   sudo iptables -C FORWARD -d 192.168.55.0/24 -j ACCEPT 2>/dev/null || \
     sudo iptables -I FORWARD 1 -d 192.168.55.0/24 -j ACCEPT
-  # Sync local terminfo to Jetson so $TERM is recognized
-  infocmp -x 2>/dev/null | sshpass -p dronecore ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null dcs_user@192.168.55.1 'cat > /tmp/.terminfo_sync && echo dronecore | sudo -S tic -x /tmp/.terminfo_sync 2>/dev/null && rm /tmp/.terminfo_sync'
-  # SSH in
-  sshpass -p dronecore ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null dcs_user@192.168.55.1
-}'
+
+  if command -v sshpass >/dev/null 2>&1; then
+    sshpass -p dronecore ssh \
+      -o StrictHostKeyChecking=no \
+      -o UserKnownHostsFile=/dev/null \
+      -o LogLevel=ERROR \
+      dcs_user@192.168.55.1
+  elif command -v expect >/dev/null 2>&1; then
+    expect -c '
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR dcs_user@192.168.55.1
+expect {
+  -re "(?i)are you sure you want to continue connecting" { send "yes\r"; exp_continue }
+  -re "(?i)password:" { send "dronecore\r" }
+  eof { exit 1 }
+}
+interact
+'
+  else
+    echo "[dronecore] ERROR: Install sshpass or expect"
+    return 1
+  fi
+}
+EOF
 
 os_name="$(uname -s)"
 
-# Install sshpass if needed
-if ! command -v sshpass &>/dev/null; then
-  log "Installing sshpass"
-  if [[ "$os_name" == "Darwin" ]]; then
-    brew install hudochenkov/sshpass/sshpass
-  elif command -v apt &>/dev/null; then
-    sudo apt install -y sshpass
-  elif command -v pacman &>/dev/null; then
-    sudo pacman -S --noconfirm sshpass
-  else
-    log "ERROR: Cannot install sshpass, please install manually"
-    exit 1
-  fi
+# Validate SSH helper availability up front so the installed function is usable.
+if command -v sshpass &>/dev/null; then
+  log "Using sshpass for password SSH"
+elif command -v expect &>/dev/null; then
+  log "Using expect fallback for password SSH"
 else
-  log "sshpass already installed"
+  log "ERROR: Neither sshpass nor expect is available"
+  exit 1
 fi
 
 # Determine profile file
-if [[ -f "$HOME/.zshrc" ]]; then
+if [[ "${SHELL:-}" == */zsh ]] || [[ -f "$HOME/.zshrc" ]]; then
   PROFILE="$HOME/.zshrc"
 elif [[ -f "$HOME/.zprofile" ]]; then
   PROFILE="$HOME/.zprofile"
@@ -84,20 +144,13 @@ else
   PROFILE="$HOME/.bashrc"
 fi
 
-# Add dronecore function to profile
-if grep -q "^dronecore()" "$PROFILE" 2>/dev/null; then
-  log "dronecore already configured in $PROFILE"
+touch "$PROFILE"
+_sed_i "/^alias dronecore=/d" "$PROFILE" 2>/dev/null || true
+
+if [[ "$os_name" == "Darwin" ]]; then
+  add_block_to_file "$PROFILE" "dronecore" "$DRONECORE_FUNC_MAC"
 else
-  # Remove old alias if present
-  sed -i.bak "/^alias dronecore=/d" "$PROFILE" 2>/dev/null || true
-  log "Adding dronecore function to $PROFILE"
-  echo "" >> "$PROFILE"
-  echo "# Dronecore: internet sharing + SSH" >> "$PROFILE"
-  if [[ "$os_name" == "Darwin" ]]; then
-    echo "$DRONECORE_FUNC_MAC" >> "$PROFILE"
-  else
-    echo "$DRONECORE_FUNC_LINUX" >> "$PROFILE"
-  fi
+  add_block_to_file "$PROFILE" "dronecore" "$DRONECORE_FUNC_LINUX"
 fi
 
 log "Done! Run 'source $PROFILE' or restart shell, then use: dronecore"
