@@ -26,6 +26,9 @@ bindsym $mod+Return exec ghostty
 # Kill focused window
 bindsym $mod+Shift+q kill
 
+# File manager (yazi)
+bindsym $mod+n exec ghostty -e yazi
+
 # Launcher (fuzzel)
 bindsym $mod+d exec fuzzel
 

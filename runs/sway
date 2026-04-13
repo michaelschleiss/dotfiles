@@ -41,6 +41,31 @@ sudo apt-get install -qq -y \
   kanshi \
   wob # OSD bar for volume/brightness feedback
 
+# Yazi file manager
+if command -v cargo &>/dev/null; then
+  log "Checking yazi (cargo install handles updates)"
+  cargo install --locked yazi-fm yazi-cli 2>&1 | grep -v "Ignored package" || true
+else
+  log "Warning: cargo not found, skipping yazi install"
+fi
+
+# Register yazi as default directory handler (used by xdg-open)
+log "Registering yazi as default directory handler"
+mkdir -p "$HOME/.local/share/applications"
+cat > "$HOME/.local/share/applications/yazi.desktop" << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=Yazi
+Comment=Terminal file manager
+Exec=ghostty -e yazi %u
+Icon=system-file-manager
+Terminal=false
+Categories=System;FileManager;
+MimeType=inode/directory;
+EOF
+xdg-mime default yazi.desktop inode/directory
+update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
+
 # Keep desktop cursor settings aligned with the wlroots/GTK config.
 if command -v gsettings &>/dev/null; then
   log "Setting cursor theme to Yaru"
