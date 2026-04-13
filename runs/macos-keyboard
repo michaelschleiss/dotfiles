@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+log() {
+  echo "[macos-keyboard] $*"
+}
+
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  log "Skipping: macOS only"
+  exit 0
+fi
+
+launch_agents_dir="${HOME}/Library/LaunchAgents"
+plist_path="${launch_agents_dir}/com.michael.capslock-delay.plist"
+label="com.michael.capslock-delay"
+uid="$(id -u)"
+
+mkdir -p "${launch_agents_dir}"
+
+log "Setting fast key repeat"
+defaults write -g KeyRepeat -int 1
+defaults write -g InitialKeyRepeat -int 10
+
+log "Installing ${label} LaunchAgent"
+cat > "${plist_path}" <<'PLIST'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.michael.capslock-delay</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/hidutil</string>
+    <string>property</string>
+    <string>--set</string>
+    <string>{"CapsLockDelayOverride":0}</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+</dict>
+</plist>
+PLIST
+
+if launchctl print "gui/${uid}/${label}" >/dev/null 2>&1; then
+  log "Reloading ${label}"
+  launchctl bootout "gui/${uid}" "${plist_path}" >/dev/null 2>&1 || true
+fi
+
+launchctl bootstrap "gui/${uid}" "${plist_path}"
+launchctl kickstart -k "gui/${uid}/${label}"
+
+log "Done"
