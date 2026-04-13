@@ -295,7 +295,7 @@ export SERENA_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/serena"'
   fi
 fi'
 
-  add_block_to_file "$HOME/.zshrc" "ai-aliases" 'alias claudey="claude --allow-dangerously-skip-permissions"'
+  add_block_to_file "$HOME/.zshrc" "ai-aliases" 'alias cc="claude --allow-dangerously-skip-permissions"'
 
   log "Done"
 }
