@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 LOG_PREFIX="[debloat]"
-source "$(dirname "$0")/lib"
+source "$(dirname "$0")/_lib"
 
 # Remove Ubuntu desktop bloat
 

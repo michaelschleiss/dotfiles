@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 LOG_PREFIX="[gcloud]"
-source "$(dirname "$0")/lib"
+source "$(dirname "$0")/_lib"
 
 INSTALL_DIR="$HOME/.local/share/google-cloud-sdk"
 
