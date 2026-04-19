@@ -197,8 +197,10 @@ install_rtk() {
       | grep -m1 '"tag_name"' | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
     if [[ -n "${latest}" && "${latest}" != "${rtk_version}" ]]; then
       log "rtk ${rtk_version} installed (pinned; upstream ${latest} available — bump rtk_version in runs/ai)"
+    elif [[ -n "${latest}" ]]; then
+      log "rtk ${rtk_version} installed (pinned, up to date with upstream)"
     else
-      log "rtk ${rtk_version} installed (pinned)"
+      log "rtk ${rtk_version} installed (pinned; upstream version check skipped)"
     fi
     return 0
   fi
