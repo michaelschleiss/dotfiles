@@ -167,8 +167,21 @@ install_codex() {
 }
 
 install_rtk() {
-  ensure_cmd jq jq
   ensure_cmd curl curl
+  ensure_cmd tar tar
+
+  # Pinned — upstream install.sh always grabs latest; to pin the binary we
+  # fetch the release tarball directly. Bump manually.
+  local rtk_version="0.37.1"
+
+  local rtk_asset
+  case "${os_name}/${arch_name}" in
+    Darwin/arm64 | Darwin/aarch64) rtk_asset="rtk-aarch64-apple-darwin.tar.gz" ;;
+    Darwin/x86_64 | Darwin/amd64)  rtk_asset="rtk-x86_64-apple-darwin.tar.gz" ;;
+    Linux/x86_64  | Linux/amd64)   rtk_asset="rtk-x86_64-unknown-linux-musl.tar.gz" ;;
+    Linux/arm64   | Linux/aarch64) rtk_asset="rtk-aarch64-unknown-linux-gnu.tar.gz" ;;
+    *) echo "Unsupported platform for rtk: ${os_name} ${arch_name}" >&2; return 1 ;;
+  esac
 
   local install_dir="${HOME}/.local/bin"
   mkdir -p "${install_dir}"
@@ -178,25 +191,41 @@ install_rtk() {
     installed_version="$("${install_dir}/rtk" --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
   fi
 
-  if [[ -n "${installed_version}" ]]; then
-    log "Updating rtk (current: ${installed_version})"
-  else
-    log "Installing rtk"
+  if [[ "${installed_version}" == "${rtk_version}" ]]; then
+    log "rtk already pinned at ${rtk_version}"
+    return 0
   fi
 
-  curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/master/install.sh | env RTK_INSTALL_DIR="${install_dir}" sh
+  if [[ -n "${installed_version}" ]]; then
+    log "Updating rtk: ${installed_version} -> ${rtk_version}"
+  else
+    log "Installing rtk ${rtk_version}"
+  fi
 
-  if [[ ! -x "${install_dir}/rtk" ]]; then
-    echo "RTK installation failed: ${install_dir}/rtk not found" >&2
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  local url="https://github.com/rtk-ai/rtk/releases/download/v${rtk_version}/${rtk_asset}"
+
+  curl -fsSL "${url}" -o "${tmpdir}/${rtk_asset}"
+  tar -xzf "${tmpdir}/${rtk_asset}" -C "${tmpdir}"
+
+  local extracted
+  extracted="$(find "${tmpdir}" -type f -name rtk -perm -u=x | head -n 1)"
+  if [[ -z "${extracted}" ]]; then
+    rm -rf "${tmpdir}"
+    echo "rtk binary not found after extracting ${rtk_asset}" >&2
     return 1
   fi
+
+  install -m 0755 "${extracted}" "${install_dir}/rtk"
+  rm -rf "${tmpdir}"
 
   if ! "${install_dir}/rtk" gain >/dev/null 2>&1; then
-    echo "RTK installation verification failed: rtk gain did not succeed" >&2
+    echo "rtk installation verification failed: rtk gain did not succeed" >&2
     return 1
   fi
 
-  log "Installed rtk: $("${install_dir}/rtk" --version 2>/dev/null || echo ok)"
+  log "Installed rtk ${rtk_version}"
 }
 
 install_uv() {
