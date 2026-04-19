@@ -4,7 +4,7 @@ source "$(dirname "$0")/_lib"
 
 # First install tmux
 if [[ ! -d ~/tmux ]]; then
-  git clone -q git@github.com:tmux/tmux.git ~/tmux
+  git clone -q https://github.com/tmux/tmux.git ~/tmux
 fi
 cd ~/tmux
 git fetch -q
