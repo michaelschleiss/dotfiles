@@ -31,6 +31,21 @@ execute() {
 log "----------- dev-env ----------"
 
 cd "$script_dir"
+
+# Files that rsync --delete would remove are preserved here instead of lost.
+# Path is outside any managed target so a later deploy won't wipe the backup.
+backup_parent="$HOME/.cache/dev-env/backup"
+backup_root="$backup_parent/$(date +%Y%m%d-%H%M%S)"
+
+# Prune backups older than 7 days (a mistaken delete is almost always noticed
+# within a day or two; anything older is noise).
+if [[ -d "$backup_parent" ]]; then
+  pruned=$(find "$backup_parent" -mindepth 1 -maxdepth 1 -type d -mtime +7 -print -exec rm -rf {} + | wc -l | tr -d ' ')
+  if [[ "$pruned" != "0" ]]; then
+    log "Pruned $pruned old backup(s) from $backup_parent"
+  fi
+fi
+
 copy_dir() {
   from=$1
   to=$2
@@ -44,7 +59,7 @@ copy_dir() {
       # No --delete: preserve local state (.claude.json is managed by runs/ai)
       execute rsync -a --exclude='.claude.json*' "$dir" "$to/$name/"
     else
-      execute rsync -a --delete "$dir" "$to/$name/"
+      execute rsync -a --delete --backup --backup-dir="$backup_root/$name" "$dir" "$to/$name/"
     fi
   done
 }
