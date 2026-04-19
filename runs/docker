@@ -44,10 +44,28 @@ else
     sudo apt update -qq
     sudo apt install -qq -y ca-certificates curl gnupg
 
-    # Add Docker's official GPG key
+    # Add Docker's official GPG key — verify fingerprint before trusting it.
+    # Source: https://docs.docker.com/engine/install/ubuntu/
+    # A bad fingerprint here means aborting installation, not silently trusting
+    # an attacker-controlled keyring for all future `apt install docker*`.
+    expected_fp="9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
+    tmp_key="$(mktemp)"
+    trap 'rm -f "$tmp_key"' EXIT
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o "$tmp_key"
+    actual_fp="$(gpg --show-keys --with-colons --with-fingerprint "$tmp_key" \
+      | awk -F: '/^fpr:/ {print $10; exit}')"
+    if [[ "$actual_fp" != "$expected_fp" ]]; then
+      echo "[docker] Docker GPG fingerprint mismatch!" >&2
+      echo "[docker]   expected: $expected_fp" >&2
+      echo "[docker]   got:      ${actual_fp:-<none>}" >&2
+      exit 1
+    fi
+    log "Docker GPG fingerprint verified: $actual_fp"
     sudo install -m 0755 -d /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-    sudo chmod a+r /etc/apt/keyrings/docker.gpg
+    sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg < "$tmp_key"
+    sudo chmod 0644 /etc/apt/keyrings/docker.gpg
+    rm -f "$tmp_key"
+    trap - EXIT
 
     # Add the repository
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
