@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LOG_PREFIX="[base]"
+source "$(dirname "$0")/lib"
 
 # Base system setup for a fresh install
 # Run this first before other scripts
-
-log() {
-  echo "[base] $*"
-}
 
 os_name="$(uname -s)"
 

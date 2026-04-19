@@ -2,6 +2,7 @@
 # WireGuard FritzBox VPN - Cross-platform setup for macOS and Linux
 
 set -e
+LOG_PREFIX="[wireguard]"
 source "$(dirname "$0")/lib"
 
 PROFILE="$HOME/.zshrc"

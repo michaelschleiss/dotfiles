@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LOG_PREFIX="[sway]"
+source "$(dirname "$0")/lib"
 
 # Sway window manager setup (Wayland)
-
-log() {
-  echo "[sway] $*"
-}
 
 os_name="$(uname -s)"
 

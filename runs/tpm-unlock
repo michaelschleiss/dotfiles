@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LOG_PREFIX="[tpm-unlock]"
+source "$(dirname "$0")/lib"
 
 # TPM2 auto-unlock for LUKS encrypted disks
 # Requires Ubuntu 25.04+ (native dracut support for TPM2 in initramfs)
 #
 # On Ubuntu <25.04, initramfs-tools doesn't support TPM2.
 # The TPM key can be enrolled early, but auto-unlock won't work until upgrade.
-
-log() {
-  echo "[tpm-unlock] $*"
-}
 
 if [[ "$(uname -s)" != "Linux" ]]; then
   exit 0

@@ -1,6 +1,17 @@
 #!/bin/bash
 # Shared helpers for runs/ scripts
 
+# Prefixed logger. Callers set LOG_PREFIX (e.g. "[ai]") before sourcing or
+# before the first log() call; defaults to empty (no prefix).
+: "${LOG_PREFIX:=}"
+log() {
+    if [[ -n "$LOG_PREFIX" ]]; then
+        echo "$LOG_PREFIX $*"
+    else
+        echo "$*"
+    fi
+}
+
 # Cross-platform sed -i (macOS requires '' argument, Linux doesn't)
 _sed_i() {
     if [[ "$(uname -s)" == "Darwin" ]]; then
@@ -25,13 +36,13 @@ add_block_to_file() {
         local existing
         existing=$(sed -n "/$marker/,/$marker_end/p" "$file" | sed '1d;$d')
         if [[ "$existing" == "$content" ]]; then
-            echo "✓ $name already in $file"
+            log "✓ $name already in $file"
             return 0
         fi
-        echo "📝 Updating $name in $file..."
+        log "📝 Updating $name in $file..."
         _sed_i "/$marker/,/$marker_end/d" "$file"
     else
-        echo "📝 Adding $name to $file..."
+        log "📝 Adding $name to $file..."
     fi
 
     cat >> "$file" <<EOF
@@ -40,7 +51,7 @@ $marker
 $content
 $marker_end
 EOF
-    echo "✓ Added $name"
+    log "✓ Added $name"
 }
 
 # Remove a block from a file by marker name
@@ -55,7 +66,7 @@ remove_block_from_file() {
         return 0
     fi
 
-    echo "🗑  Removing $name from $file..."
+    log "🗑  Removing $name from $file..."
     _sed_i "/$marker/,/$marker_end/d" "$file"
-    echo "✓ Removed $name"
+    log "✓ Removed $name"
 }

@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LOG_PREFIX="[p16v]"
+source "$(dirname "$0")/lib"
 
 # ThinkPad P16v specific configuration
 # - Fixes brightness function keys via GRUB kernel parameter
 # - Adds user to video group for brightnessctl without sudo
 # - Configures hibernate: swap file, GRUB resume, initramfs, UPower
-
-log() {
-  echo "[p16v] $*"
-}
 
 # Only run on Linux
 if [[ "$(uname -s)" != "Linux" ]]; then

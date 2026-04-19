@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LOG_PREFIX="[nvidia]"
+source "$(dirname "$0")/lib"
 
 # NVIDIA driver setup using CUDA repo (nvidia-open for Blackwell GPUs)
 #
 # On hybrid laptops:
 # - Display: Intel GPU (configured via WLR_DRM_DEVICES in runs/sway)
 # - Compute: Nvidia GPU (CUDA/PyTorch/TensorFlow)
-
-log() {
-  echo "[nvidia] $*"
-}
 
 have() {
   command -v "$1" >/dev/null 2>&1
