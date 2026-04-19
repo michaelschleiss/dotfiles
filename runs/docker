@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LOG_PREFIX="[docker]"
+source "$(dirname "$0")/lib"
 
 # Docker and DevPod installation
-
-log() {
-  echo "[docker] $*"
-}
 
 os_name="$(uname -s)"
 

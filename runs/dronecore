@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LOG_PREFIX="[dronecore]"
 source "$(dirname "$0")/lib"
 
 # Dronecore (Jetson) SSH setup - works on macOS and Linux
-
-log() {
-  echo "[dronecore] $*"
-}
 
 read -r -d '' DRONECORE_FUNC_MAC <<'EOF' || true
 dronecore() {

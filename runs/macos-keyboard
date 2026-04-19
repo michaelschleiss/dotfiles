@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
-log() {
-  echo "[macos-keyboard] $*"
-}
+LOG_PREFIX="[macos-keyboard]"
+source "$(dirname "$0")/lib"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   log "Skipping: macOS only"

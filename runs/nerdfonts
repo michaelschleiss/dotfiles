@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LOG_PREFIX="[fonts]"
+source "$(dirname "$0")/lib"
 
 # Nerd Fonts installation
-
-log() {
-  echo "[fonts] $*"
-}
 
 os_name="$(uname -s)"
 FONT_NAME="JetBrainsMono"

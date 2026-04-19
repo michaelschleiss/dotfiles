@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LOG_PREFIX="[debloat]"
+source "$(dirname "$0")/lib"
 
 # Remove Ubuntu desktop bloat
-
-log() {
-  echo "[debloat] $*"
-}
 
 # Remove packages quietly, showing only real errors
 # NOTE: Do NOT use --auto-remove here - it causes cascading removals of
