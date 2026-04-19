@@ -69,21 +69,21 @@ else
 }'
 fi
 
-echo "🔧 Setting up WireGuard FritzBox VPN..."
+log "🔧 Setting up WireGuard FritzBox VPN..."
 
 # Install WireGuard if needed
 if ! command -v wg &> /dev/null; then
-    echo "📦 Installing WireGuard..."
+    log "📦 Installing WireGuard..."
     $PKG_INSTALL wireguard-tools
 else
-    echo "✓ WireGuard already installed"
+    log "✓ WireGuard already installed"
 fi
 
 # Create config directory
 sudo mkdir -p "$WG_CONFIG_DIR"
 
 # Write config (embedded)
-echo "📝 Creating FritzBox config..."
+log "📝 Creating FritzBox config..."
 sudo tee "$WG_CONFIG_DIR/fritzbox.conf" > /dev/null <<'EOF'
 [Interface]
 PrivateKey = gCwkkb7shwns8C3CjOWpbBRvGJSBymj/AMEHVIsjHFY=
@@ -105,11 +105,11 @@ sudo chmod 600 "$WG_CONFIG_DIR/fritzbox.conf"
 add_block_to_file "$PROFILE" "wireguard-fritzbox" "$FRITZBOX_FUNC"
 
 echo ""
-echo "✅ Setup complete! Run: source ~/.zshrc"
+log "✅ Setup complete! Run: source ~/.zshrc"
 echo ""
 if [[ "$USE_SYSTEMD_RESOLVED" == "true" ]]; then
-    echo "🔍 Detected systemd-resolved - using resolvectl for DNS"
+    log "🔍 Detected systemd-resolved - using resolvectl for DNS"
 fi
-echo "Usage:  fritzbox on     - Connect"
-echo "        fritzbox off    - Disconnect"
-echo "        fritzbox status - Check status"
+log "Usage:  fritzbox on     - Connect"
+log "        fritzbox off    - Disconnect"
+log "        fritzbox status - Check status"

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LOG_PREFIX="[tmux]"
 source "$(dirname "$0")/_lib"
 
 # First install tmux
@@ -25,7 +26,7 @@ elif [[ "$os_name" == "Linux" ]]; then
     libutf8proc-dev
   cores=$(nproc)
 else
-  echo "Unknown OS: $os_name" > $2
+  log "Unknown OS: $os_name" >&2
   exit 1
 fi
 

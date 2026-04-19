@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Shared helpers for runs/ scripts
 
 # Prefixed logger. Callers set LOG_PREFIX (e.g. "[ai]") before sourcing or
