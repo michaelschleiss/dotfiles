@@ -5,58 +5,6 @@ source "$(dirname "$0")/_lib"
 
 export PATH="${HOME}/.local/bin:${PATH}"
 
-ensure_cmd() {
-  local cmd="$1"
-  local pkg="${2:-}"
-
-  if have "$cmd"; then
-    return 0
-  fi
-
-  if [[ -z "${pkg}" ]]; then
-    echo "Missing required command: ${cmd}" >&2
-    return 1
-  fi
-
-  if [[ "$os_name" == "Darwin" ]] && have brew; then
-    log "Installing ${pkg} (Homebrew)"
-    brew install "$pkg"
-    return 0
-  fi
-
-  if [[ "$os_name" == "Linux" ]] && have apt-get; then
-    log "Installing ${pkg} (apt)"
-    sudo apt-get update
-    sudo apt-get install -y "$pkg"
-    return 0
-  fi
-
-  echo "Missing required command: ${cmd} (and no supported package manager found)" >&2
-  return 1
-}
-
-install_ripgrep() {
-  if have rg; then
-    return 0
-  fi
-
-  if [[ "$os_name" == "Darwin" ]] && have brew; then
-    log "Installing ripgrep (Homebrew)"
-    brew install ripgrep
-    return 0
-  fi
-
-  if [[ "$os_name" == "Linux" ]] && have apt-get; then
-    log "Installing ripgrep (apt)"
-    sudo apt-get update
-    sudo apt-get install -y ripgrep
-    return 0
-  fi
-
-  echo "ripgrep (rg) is required for codex. Install it and re-run this script." >&2
-  return 1
-}
-
 codex_target() {
   case "${os_name}/${arch_name}" in
     Darwin/arm64 | Darwin/aarch64) echo "aarch64-apple-darwin" ;;
@@ -77,59 +25,13 @@ install_codex_from_github() {
   ensure_cmd curl curl
   ensure_cmd tar tar
 
-  local asset="codex-${target}.tar.gz"
-  local url="https://github.com/openai/codex/releases/latest/download/${asset}"
-  local tmpdir
-  tmpdir="$(mktemp -d)"
-
-  local install_dir="${HOME}/.local/bin"
-  mkdir -p "${install_dir}"
-
-  local installed_version=""
-  if [[ -x "${install_dir}/codex" ]]; then
-    installed_version="$("${install_dir}/codex" --version 2>/dev/null | grep -Eo '[0-9]+\\.[0-9]+\\.[0-9]+' | head -n 1 || true)"
-  fi
-
-  local latest_version=""
-  local release_json=""
-  release_json="$(curl -fsSL "https://api.github.com/repos/openai/codex/releases/latest" 2>/dev/null || true)"
-  latest_version="$(printf '%s' "${release_json}" | grep -m1 '"tag_name"' | grep -Eo '[0-9]+\\.[0-9]+\\.[0-9]+' | head -n 1 || true)"
-
-  if [[ -n "${installed_version}" && -n "${latest_version}" && "${installed_version}" == "${latest_version}" ]]; then
-    log "codex already up to date: ${installed_version}"
-    rm -rf "${tmpdir}"
-    return 0
-  fi
-
-  if [[ -n "${installed_version}" ]]; then
-    if [[ -n "${latest_version}" ]]; then
-      log "Updating codex: ${installed_version} -> ${latest_version}"
-    else
-      log "Updating codex (current: ${installed_version})"
-    fi
-  else
-    log "Installing codex"
-  fi
-
-  log "Downloading codex (${target})"
-  curl -fsSL "${url}" -o "${tmpdir}/${asset}"
-
-  tar -xzf "${tmpdir}/${asset}" -C "${tmpdir}"
-
-  local extracted_bin="${tmpdir}/codex-${target}"
-  if [[ ! -f "${extracted_bin}" ]]; then
-    rm -rf "${tmpdir}"
-    echo "Expected ${extracted_bin} after extracting ${asset}" >&2
-    return 1
-  fi
-
-  install -m 0755 "${extracted_bin}" "${install_dir}/codex"
-  rm -rf "${tmpdir}"
-  log "Installed codex to ${install_dir}/codex ($(\"${install_dir}/codex\" --version 2>/dev/null || echo ok))"
+  # Tarball contains `codex-${target}`; helper matches it via bin_name-* glob
+  # and installs as `codex`.
+  install_pinned_github_release codex openai/codex latest "codex-${target}.tar.gz"
 }
 
 install_codex() {
-  install_ripgrep
+  ensure_cmd rg ripgrep
 
   if [[ "$os_name" == "Darwin" ]] && have brew; then
     export HOMEBREW_NO_AUTO_UPDATE=1
@@ -163,71 +65,33 @@ install_rtk() {
   ensure_cmd curl curl
   ensure_cmd tar tar
 
-  # Pinned — upstream install.sh always grabs latest; to pin the binary we
-  # fetch the release tarball directly. Bump manually.
+  # Pinned — upstream install.sh always grabs latest; pin the binary instead.
+  # Bump manually.
   local rtk_version="0.37.1"
 
-  local rtk_asset
+  local asset
   case "${os_name}/${arch_name}" in
-    Darwin/arm64 | Darwin/aarch64) rtk_asset="rtk-aarch64-apple-darwin.tar.gz" ;;
-    Darwin/x86_64 | Darwin/amd64)  rtk_asset="rtk-x86_64-apple-darwin.tar.gz" ;;
-    Linux/x86_64  | Linux/amd64)   rtk_asset="rtk-x86_64-unknown-linux-musl.tar.gz" ;;
-    Linux/arm64   | Linux/aarch64) rtk_asset="rtk-aarch64-unknown-linux-gnu.tar.gz" ;;
+    Darwin/arm64 | Darwin/aarch64) asset="rtk-aarch64-apple-darwin.tar.gz" ;;
+    Darwin/x86_64 | Darwin/amd64)  asset="rtk-x86_64-apple-darwin.tar.gz" ;;
+    Linux/x86_64  | Linux/amd64)   asset="rtk-x86_64-unknown-linux-musl.tar.gz" ;;
+    Linux/arm64   | Linux/aarch64) asset="rtk-aarch64-unknown-linux-gnu.tar.gz" ;;
     *) echo "Unsupported platform for rtk: ${os_name} ${arch_name}" >&2; return 1 ;;
   esac
 
-  local install_dir="${HOME}/.local/bin"
-  mkdir -p "${install_dir}"
+  install_pinned_github_release rtk rtk-ai/rtk "$rtk_version" "$asset"
 
-  local installed_version=""
-  if [[ -x "${install_dir}/rtk" ]]; then
-    installed_version="$("${install_dir}/rtk" --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
-  fi
-
-  if [[ "${installed_version}" == "${rtk_version}" ]]; then
-    local latest
-    latest="$(curl -fsSL "https://api.github.com/repos/rtk-ai/rtk/releases/latest" 2>/dev/null \
-      | grep -m1 '"tag_name"' | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
-    if [[ -n "${latest}" && "${latest}" != "${rtk_version}" ]]; then
-      log "rtk ${rtk_version} installed (pinned; upstream ${latest} available — bump rtk_version in runs/ai)"
-    elif [[ -n "${latest}" ]]; then
-      log "rtk ${rtk_version} installed (pinned, up to date with upstream)"
-    else
-      log "rtk ${rtk_version} installed (pinned; upstream version check skipped)"
-    fi
-    return 0
-  fi
-
-  if [[ -n "${installed_version}" ]]; then
-    log "Updating rtk: ${installed_version} -> ${rtk_version}"
-  else
-    log "Installing rtk ${rtk_version}"
-  fi
-
-  local tmpdir
-  tmpdir="$(mktemp -d)"
-  local url="https://github.com/rtk-ai/rtk/releases/download/v${rtk_version}/${rtk_asset}"
-
-  curl -fsSL "${url}" -o "${tmpdir}/${rtk_asset}"
-  tar -xzf "${tmpdir}/${rtk_asset}" -C "${tmpdir}"
-
-  local extracted
-  extracted="$(find "${tmpdir}" -type f -name rtk -perm -u=x | head -n 1)"
-  if [[ -z "${extracted}" ]]; then
-    rm -rf "${tmpdir}"
-    echo "rtk binary not found after extracting ${rtk_asset}" >&2
-    return 1
-  fi
-
-  install -m 0755 "${extracted}" "${install_dir}/rtk"
-  rm -rf "${tmpdir}"
-
-  if ! "${install_dir}/rtk" gain >/dev/null 2>&1; then
+  if ! "${HOME}/.local/bin/rtk" gain >/dev/null 2>&1; then
     echo "rtk installation verification failed: rtk gain did not succeed" >&2
     return 1
   fi
 
-  log "Installed rtk ${rtk_version}"
+  # Advisory: flag if upstream has moved past our pin.
+  local latest
+  latest="$(curl -fsSL "https://api.github.com/repos/rtk-ai/rtk/releases/latest" 2>/dev/null \
+    | grep -m1 '"tag_name"' | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
+  if [[ -n "${latest}" && "${latest}" != "${rtk_version}" ]]; then
+    log "rtk pinned at ${rtk_version}; upstream ${latest} available — bump rtk_version in runs/ai"
+  fi
 }
 
 install_uv() {

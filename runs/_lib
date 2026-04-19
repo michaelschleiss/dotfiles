@@ -21,6 +21,90 @@ have() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# ensure_cmd <cmd> [pkg]
+# Ensure <cmd> is available; if not and <pkg> is given, install it via the
+# platform's package manager (brew on macOS, apt-get on Linux). No-ops on
+# unsupported platforms.
+ensure_cmd() {
+    local cmd="$1" pkg="${2:-}"
+    if have "$cmd"; then return 0; fi
+    if [[ -z "$pkg" ]]; then
+        echo "Missing required command: ${cmd}" >&2
+        return 1
+    fi
+    if [[ "$os_name" == "Darwin" ]] && have brew; then
+        log "Installing ${pkg} (Homebrew)"
+        brew install "$pkg"
+        return 0
+    fi
+    if [[ "$os_name" == "Linux" ]] && have apt-get; then
+        log "Installing ${pkg} (apt)"
+        sudo apt-get update
+        sudo apt-get install -y "$pkg"
+        return 0
+    fi
+    echo "Missing required command: ${cmd} (and no supported package manager found)" >&2
+    return 1
+}
+
+# install_pinned_github_release <bin_name> <repo> <version> <asset>
+#   <version>: literal version ("0.37.1") to pin, or "latest"
+#   <asset>:   asset filename on the release page (e.g. foo-linux-x86_64.tar.gz)
+#   <repo>:    "owner/repo"
+# Installs to ~/.local/bin/<bin_name>. Idempotent: skips if the installed
+# binary already reports the desired version. Tarball must contain an
+# executable named <bin_name> or <bin_name>-*.
+install_pinned_github_release() {
+    local bin_name="$1" repo="$2" version_spec="$3" asset="$4"
+    local install_dir="${HOME}/.local/bin"
+    mkdir -p "${install_dir}"
+
+    local desired="${version_spec}"
+    if [[ "${version_spec}" == "latest" ]]; then
+        desired="$(curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" 2>/dev/null \
+            | grep -m1 '"tag_name"' | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
+        if [[ -z "${desired}" ]]; then
+            echo "${bin_name}: failed to resolve latest version from ${repo}" >&2
+            return 1
+        fi
+    fi
+
+    local installed=""
+    if [[ -x "${install_dir}/${bin_name}" ]]; then
+        installed="$("${install_dir}/${bin_name}" --version 2>/dev/null \
+            | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
+    fi
+
+    if [[ "${installed}" == "${desired}" ]]; then
+        log "${bin_name} ${desired} already installed"
+        return 0
+    fi
+
+    if [[ -n "${installed}" ]]; then
+        log "Updating ${bin_name}: ${installed} -> ${desired}"
+    else
+        log "Installing ${bin_name} ${desired}"
+    fi
+
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    local url="https://github.com/${repo}/releases/download/v${desired}/${asset}"
+
+    curl -fsSL "${url}" -o "${tmpdir}/${asset}"
+    tar -xzf "${tmpdir}/${asset}" -C "${tmpdir}"
+
+    local extracted
+    extracted="$(find "${tmpdir}" -type f \( -name "${bin_name}" -o -name "${bin_name}-*" \) -perm -u=x | head -n 1)"
+    if [[ -z "${extracted}" ]]; then
+        rm -rf "${tmpdir}"
+        echo "${bin_name}: no executable '${bin_name}' or '${bin_name}-*' in ${asset}" >&2
+        return 1
+    fi
+
+    install -m 0755 "${extracted}" "${install_dir}/${bin_name}"
+    rm -rf "${tmpdir}"
+}
+
 # Cross-platform sed -i (macOS requires '' argument, Linux doesn't)
 _sed_i() {
     if [[ "$(uname -s)" == "Darwin" ]]; then
