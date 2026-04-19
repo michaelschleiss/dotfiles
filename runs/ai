@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LOG_PREFIX="[ai]"
 source "$(dirname "$0")/lib"
-
-log() {
-  echo "[ai] $*"
-}
 
 have() {
   command -v "$1" >/dev/null 2>&1
@@ -142,8 +139,27 @@ install_codex() {
   install_ripgrep
 
   if [[ "$os_name" == "Darwin" ]] && have brew; then
-    log "Updating codex (Homebrew cask)"
-    brew upgrade --cask codex || brew install --cask codex
+    export HOMEBREW_NO_AUTO_UPDATE=1
+    export HOMEBREW_NO_ENV_HINTS=1
+
+    if ! brew list --cask codex >/dev/null 2>&1; then
+      log "Installing codex (Homebrew cask)"
+      brew install --cask codex
+      return 0
+    fi
+
+    local installed latest
+    installed="$(brew list --cask --versions codex 2>/dev/null | awk '{print $2}')"
+    latest="$(brew info --cask --json=v2 codex 2>/dev/null \
+      | python3 -c 'import json,sys; print(json.load(sys.stdin)["casks"][0]["version"])' 2>/dev/null || true)"
+
+    if [[ -n "$installed" && -n "$latest" && "$installed" == "$latest" ]]; then
+      log "codex already up to date: ${installed}"
+      return 0
+    fi
+
+    log "Updating codex (Homebrew cask): ${installed:-?} -> ${latest:-?}"
+    brew upgrade --cask codex
     return 0
   fi
 
@@ -230,22 +246,25 @@ configure_claude_mcp() {
     return 0
   fi
 
-  log "Configuring paper-search MCP server (overrides existing)"
-  python3 -c "
+  python3 - "${claude_json}" <<'PY'
 import json, pathlib, sys
 p = pathlib.Path(sys.argv[1])
 d = json.loads(p.read_text())
-servers = d.get('mcpServers', {})
-servers['paper-search'] = {
+desired = {
     '_managed_by': 'dev-env/runs/ai — do not edit, will be overridden',
     'type': 'stdio',
     'command': 'uvx',
     'args': ['--from', 'git+https://github.com/michaelschleiss/paper-search-mcp', 'paper-search-mcp'],
-    'env': {'PATH': '\${HOME}/.local/bin:\${PATH}'}
+    'env': {'PATH': '${HOME}/.local/bin:${PATH}'},
 }
+servers = d.get('mcpServers', {})
+if servers.get('paper-search') == desired:
+    sys.exit(0)
+servers['paper-search'] = desired
 d['mcpServers'] = servers
 p.write_text(json.dumps(d, indent=2) + '\n')
-" "${claude_json}"
+print('[ai] Configured paper-search MCP server')
+PY
 }
 
 install_claude_browse() {
@@ -257,18 +276,26 @@ install_claude_browse() {
   mkdir -p "${install_dir}"
 
   if [[ -d "${clone_dir}" ]]; then
-    log "Updating claude-browse"
-    git -C "${clone_dir}" pull --ff-only 2>/dev/null || true
+    local before after
+    before="$(git -C "${clone_dir}" rev-parse HEAD 2>/dev/null || echo '')"
+    git -C "${clone_dir}" pull --ff-only --quiet 2>/dev/null || true
+    after="$(git -C "${clone_dir}" rev-parse HEAD 2>/dev/null || echo '')"
+    if [[ -n "$before" && "$before" != "$after" ]]; then
+      log "Updated claude-browse: ${before:0:7} -> ${after:0:7}"
+    else
+      log "claude-browse up to date (${after:0:7})"
+    fi
   else
     log "Installing claude-browse"
     git clone "${repo}" "${clone_dir}"
   fi
 
-  if [[ -L "${bin}" || ! -e "${bin}" ]]; then
-    ln -sf "${clone_dir}/claude-browse" "${bin}"
+  local target="${clone_dir}/claude-browse"
+  if [[ -L "${bin}" && "$(readlink "${bin}")" == "${target}" ]]; then
+    :
+  elif [[ -L "${bin}" || ! -e "${bin}" ]]; then
+    ln -sf "${target}" "${bin}"
     log "Linked claude-browse -> ${bin}"
-  else
-    log "claude-browse already exists at ${bin} (not a symlink, skipping)"
   fi
 }
 
