@@ -3,19 +3,12 @@ set -euo pipefail
 LOG_PREFIX="[gcloud]"
 source "$(dirname "$0")/lib"
 
-have() {
-  command -v "$1" >/dev/null 2>&1
-}
-
 INSTALL_DIR="$HOME/.local/share/google-cloud-sdk"
 
 if have gcloud; then
   log "gcloud already installed: $(gcloud --version 2>/dev/null | head -1)"
   exit 0
 fi
-
-os_name="$(uname -s)"
-arch_name="$(uname -m)"
 
 # Determine archive name
 case "${os_name}/${arch_name}" in

@@ -9,10 +9,6 @@ source "$(dirname "$0")/lib"
 # - Display: Intel GPU (configured via WLR_DRM_DEVICES in runs/sway)
 # - Compute: Nvidia GPU (CUDA/PyTorch/TensorFlow)
 
-have() {
-  command -v "$1" >/dev/null 2>&1
-}
-
 get_ubuntu_version() {
   if [[ -f /etc/os-release ]]; then
     # shellcheck disable=SC1091

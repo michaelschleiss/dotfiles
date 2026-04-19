@@ -12,6 +12,15 @@ log() {
     fi
 }
 
+# OS / arch detection. Readonly so callers don't accidentally shadow them.
+readonly os_name="$(uname -s)"
+readonly arch_name="$(uname -m)"
+
+# `have <cmd>` — true if the command is on PATH.
+have() {
+    command -v "$1" >/dev/null 2>&1
+}
+
 # Cross-platform sed -i (macOS requires '' argument, Linux doesn't)
 _sed_i() {
     if [[ "$(uname -s)" == "Darwin" ]]; then

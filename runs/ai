@@ -3,13 +3,6 @@ set -euo pipefail
 LOG_PREFIX="[ai]"
 source "$(dirname "$0")/lib"
 
-have() {
-  command -v "$1" >/dev/null 2>&1
-}
-
-os_name="$(uname -s)"
-arch_name="$(uname -m)"
-
 export PATH="${HOME}/.local/bin:${PATH}"
 
 ensure_cmd() {
