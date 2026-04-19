@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-script_dir="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 dry="0"
 
 while [[ $# > 0 ]]; do
@@ -29,7 +30,7 @@ execute() {
 
 log "----------- dev-env ----------"
 
-cd $script_dir
+cd "$script_dir"
 copy_dir() {
   from=$1
   to=$2
@@ -51,9 +52,9 @@ copy_dir() {
 copy_file() {
   from=$1
   to=$2
-  name=$(basename $from)
-  execute rm $to/$name
-  execute cp $from $to/$name
+  name=$(basename "$from")
+  execute rm -f -- "$to/$name"
+  execute cp -- "$from" "$to/$name"
 }
 
 copy_dir config  ${XDG_CONFIG_HOME:-$HOME/.config}
