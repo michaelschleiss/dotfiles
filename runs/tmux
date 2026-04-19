@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+source "$(dirname "$0")/lib"
 
 # First install tmux
 if [[ ! -d ~/tmux ]]; then
@@ -9,7 +10,6 @@ cd ~/tmux
 git fetch -q
 git checkout -q 3.5a
 
-os_name="$(uname -s)"
 if [[ "$os_name" == "Darwin" ]]; then
   brew install -q automake pkg-config libevent ncurses utf8proc
   cores=$(sysctl -n hw.ncpu)

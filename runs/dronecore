@@ -118,8 +118,6 @@ interact
 }
 EOF
 
-os_name="$(uname -s)"
-
 # Validate SSH helper availability up front so the installed function is usable.
 if command -v sshpass &>/dev/null; then
   log "Using sshpass for password SSH"

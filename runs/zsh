@@ -3,8 +3,6 @@ set -euo pipefail
 LOG_PREFIX="[zsh]"
 source "$(dirname "$0")/lib"
 
-os_name="$(uname -s)"
-
 # --- Install zsh + plugins (Linux only, macOS has zsh built-in) ---
 if [[ "$os_name" == "Linux" ]]; then
   log "Installing zsh and plugins"

@@ -14,8 +14,6 @@ apt_remove() {
     || true
 }
 
-os_name="$(uname -s)"
-
 if [[ "$os_name" != "Linux" ]]; then
   log "Only for Linux, skipping"
   exit 0
