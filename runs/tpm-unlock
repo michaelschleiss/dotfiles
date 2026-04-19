@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 LOG_PREFIX="[tpm-unlock]"
-source "$(dirname "$0")/lib"
+source "$(dirname "$0")/_lib"
 
 # TPM2 auto-unlock for LUKS encrypted disks
 # Requires Ubuntu 25.04+ (native dracut support for TPM2 in initramfs)

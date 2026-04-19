@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 LOG_PREFIX="[p16v]"
-source "$(dirname "$0")/lib"
+source "$(dirname "$0")/_lib"
 
 # ThinkPad P16v specific configuration
 # - Fixes brightness function keys via GRUB kernel parameter

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 LOG_PREFIX="[zsh-profile]"
-source "$(dirname "$0")/lib"
+source "$(dirname "$0")/_lib"
 
 PROFILE="$HOME/.zprofile"
 touch "$PROFILE"

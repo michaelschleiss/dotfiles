@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 LOG_PREFIX="[nvidia]"
-source "$(dirname "$0")/lib"
+source "$(dirname "$0")/_lib"
 
 # NVIDIA driver setup using CUDA repo (nvidia-open for Blackwell GPUs)
 #

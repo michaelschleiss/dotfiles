@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 LOG_PREFIX="[base]"
-source "$(dirname "$0")/lib"
+source "$(dirname "$0")/_lib"
 
 # Base system setup for a fresh install
 # Run this first before other scripts
