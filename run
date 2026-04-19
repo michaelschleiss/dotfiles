@@ -7,7 +7,6 @@ dry="0"
 
 cd $script_dir
 scripts=$(find runs -maxdepth 1 -mindepth 1 -type f -perm -u=x)
-echo $scripts
 
 while [[ $# > 0 ]]; do
     if [[ "$1" == "--dry" ]]; then
@@ -39,7 +38,9 @@ log "run: filter=$filter"
 
 for script in $scripts; do
     if echo "$script" | grep -qv "$filter"; then
-        log "filtered: $filter -- $script"
+        if [[ $dry == "1" ]]; then
+            log "filtered: $filter -- $script"
+        fi
         continue
     fi
     log "running script: $script"
