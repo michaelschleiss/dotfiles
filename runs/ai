@@ -192,7 +192,14 @@ install_rtk() {
   fi
 
   if [[ "${installed_version}" == "${rtk_version}" ]]; then
-    log "rtk already pinned at ${rtk_version}"
+    local latest
+    latest="$(curl -fsSL "https://api.github.com/repos/rtk-ai/rtk/releases/latest" 2>/dev/null \
+      | grep -m1 '"tag_name"' | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
+    if [[ -n "${latest}" && "${latest}" != "${rtk_version}" ]]; then
+      log "rtk pinned at ${rtk_version} (upstream ${latest} available — bump rtk_version in runs/ai)"
+    else
+      log "rtk already pinned at ${rtk_version}"
+    fi
     return 0
   fi
 
