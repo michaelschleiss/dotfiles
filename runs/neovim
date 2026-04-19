@@ -16,12 +16,10 @@ if nvim --version 2>/dev/null | head -1 | grep -q "${TARGET_VERSION#v}"; then
 else
   rm -rf ~/neovim
   echo "Cloning neovim repository..."
-  git clone -q git@github.com:neovim/neovim.git ~/neovim
+  git clone -q https://github.com/neovim/neovim.git ~/neovim
   cd ~/neovim
   git fetch -q
   git checkout -q "$TARGET_VERSION"
-
-  os_name="$(uname -s)"
 
   if [[ "$os_name" == "Darwin" ]]; then
     brew install ninja cmake gettext curl

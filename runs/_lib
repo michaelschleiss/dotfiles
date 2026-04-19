@@ -30,6 +30,11 @@ _sed_i() {
     fi
 }
 
+# Escape BRE metacharacters so a literal string is safe to use as a sed address.
+_re_escape() {
+    printf '%s' "$1" | sed 's|[][\\/.*^$]|\\&|g'
+}
+
 # Add a block to a file if not already present (idempotent)
 # Usage: add_block_to_file <file> <marker_name> <content>
 # Example: add_block_to_file ~/.zsh_profile "my-tool" "alias foo='bar'"
@@ -39,17 +44,20 @@ add_block_to_file() {
     local content="$3"
     local marker="# >>> $name >>>"
     local marker_end="# <<< $name <<<"
+    local marker_re marker_end_re
+    marker_re="$(_re_escape "$marker")"
+    marker_end_re="$(_re_escape "$marker_end")"
 
-    if grep -q "$marker" "$file" 2>/dev/null; then
+    if grep -qF -- "$marker" "$file" 2>/dev/null; then
         # Extract existing block content and compare
         local existing
-        existing=$(sed -n "/$marker/,/$marker_end/p" "$file" | sed '1d;$d')
+        existing=$(sed -n "/$marker_re/,/$marker_end_re/p" "$file" | sed '1d;$d')
         if [[ "$existing" == "$content" ]]; then
             log "✓ $name already in $file"
             return 0
         fi
         log "📝 Updating $name in $file..."
-        _sed_i "/$marker/,/$marker_end/d" "$file"
+        _sed_i "/$marker_re/,/$marker_end_re/d" "$file"
     else
         log "📝 Adding $name to $file..."
     fi
@@ -70,12 +78,15 @@ remove_block_from_file() {
     local name="$2"
     local marker="# >>> $name >>>"
     local marker_end="# <<< $name <<<"
+    local marker_re marker_end_re
+    marker_re="$(_re_escape "$marker")"
+    marker_end_re="$(_re_escape "$marker_end")"
 
-    if ! grep -q "$marker" "$file" 2>/dev/null; then
+    if ! grep -qF -- "$marker" "$file" 2>/dev/null; then
         return 0
     fi
 
     log "🗑  Removing $name from $file..."
-    _sed_i "/$marker/,/$marker_end/d" "$file"
+    _sed_i "/$marker_re/,/$marker_end_re/d" "$file"
     log "✓ Removed $name"
 }
