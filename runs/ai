@@ -30,18 +30,45 @@ install_codex_from_github() {
   install_pinned_github_release codex openai/codex latest "codex-${target}.tar.gz"
 }
 
+run_silent_unless_failed() {
+  local label="$1"
+  shift
+
+  if [[ "${RUN_VERBOSE:-0}" == "1" ]]; then
+    "$@"
+    return
+  fi
+
+  local log_file
+  log_file="$(mktemp "${TMPDIR:-/tmp}/ai.XXXXXX")"
+  if "$@" >"${log_file}" 2>&1; then
+    rm -f "${log_file}"
+    return 0
+  else
+    local status="$?"
+    echo "${LOG_PREFIX} ${label} failed; command output:" >&2
+    sed 's/^/[brew] /' "${log_file}" >&2
+    rm -f "${log_file}"
+    return "${status}"
+  fi
+}
+
 install_codex() {
   ensure_cmd rg ripgrep
 
   if [[ "$os_name" == "Darwin" ]] && have brew; then
-    export HOMEBREW_NO_AUTO_UPDATE=1
     export HOMEBREW_NO_ENV_HINTS=1
 
     if ! brew list --cask codex >/dev/null 2>&1; then
       log "Installing codex (Homebrew cask)"
-      brew install --cask codex
+      run_silent_unless_failed "brew install codex" brew install --cask codex
       return 0
     fi
+
+    log "Updating Homebrew metadata for codex cask"
+    run_silent_unless_failed "brew update" brew update
+
+    export HOMEBREW_NO_AUTO_UPDATE=1
 
     local installed latest
     installed="$(brew list --cask --versions codex 2>/dev/null | awk '{print $2}')"
@@ -54,7 +81,7 @@ install_codex() {
     fi
 
     log "Updating codex (Homebrew cask): ${installed:-?} -> ${latest:-?}"
-    brew upgrade --cask codex
+    run_silent_unless_failed "brew upgrade codex" brew upgrade --cask codex
     return 0
   fi
 
