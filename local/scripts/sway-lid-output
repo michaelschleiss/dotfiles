@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+internal="${SWAY_INTERNAL_OUTPUT:-eDP-1}"
+
+lid_state() {
+  local state_file
+
+  for state_file in /proc/acpi/button/lid/*/state; do
+    [[ -r "$state_file" ]] || continue
+    awk '{print $2}' "$state_file"
+    return
+  done
+
+  echo unknown
+}
+
+has_active_external_output() {
+  local outputs="$1"
+
+  jq -e --arg internal "$internal" 'any(.[]; .name != $internal and .active)' \
+    <<< "$outputs" > /dev/null
+}
+
+internal_is_active() {
+  local outputs="$1"
+
+  jq -e --arg internal "$internal" 'any(.[]; .name == $internal and .active)' \
+    <<< "$outputs" > /dev/null
+}
+
+apply_state() {
+  local state="$1"
+  local outputs
+
+  case "$state" in
+    closed|on)
+      outputs="$(swaymsg -t get_outputs)"
+      if has_active_external_output "$outputs"; then
+        if internal_is_active "$outputs"; then
+          swaymsg output "$internal" disable > /dev/null
+        fi
+      else
+        if ! internal_is_active "$outputs"; then
+          swaymsg output "$internal" enable > /dev/null
+        fi
+      fi
+      ;;
+    open|off)
+      outputs="$(swaymsg -t get_outputs)"
+      if ! internal_is_active "$outputs"; then
+        swaymsg output "$internal" enable > /dev/null
+      fi
+      ;;
+    auto)
+      apply_state "$(lid_state)"
+      ;;
+    unknown)
+      ;;
+    *)
+      printf 'usage: %s [auto|watch|closed|open|on|off]\n' "${0##*/}" >&2
+      return 2
+      ;;
+  esac
+}
+
+watch_outputs() {
+  local lock_file="${XDG_RUNTIME_DIR:-/tmp}/sway-lid-output.lock"
+
+  exec 9>"$lock_file"
+  flock -n 9 || exit 0
+
+  apply_state auto
+  swaymsg -m -t subscribe '["output"]' | while read -r _event; do
+    apply_state auto
+  done
+}
+
+case "${1:-auto}" in
+  watch)
+    watch_outputs
+    ;;
+  *)
+    apply_state "${1:-auto}"
+    ;;
+esac

@@ -130,8 +130,11 @@ exec_always sh -c 'pkill -x waybar; exec waybar'
 # Background
 output * bg #1e1e2e solid_color
 
-# Output configuration - let kanshi handle dynamic output management
-output DP-1 mode 3440x1440@99.982Hz position 0,0
+# Output configuration - let kanshi handle static layouts, and keep lid state
+# authoritative so dock connector renumbering does not leave eDP enabled.
+exec_always ~/.local/scripts/sway-lid-output watch
+bindswitch --locked --reload lid:on exec ~/.local/scripts/sway-lid-output closed
+bindswitch --locked --reload lid:off exec ~/.local/scripts/sway-lid-output open
 
 # Autostart
 exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
