@@ -5,7 +5,7 @@
     "margin": 3,
     "modules-left": ["sway/workspaces", "sway/mode"],
     "modules-center": ["clock"],
-    "modules-right": ["custom/notification", "battery", "tray"],
+    "modules-right": ["custom/notification", "battery", "pulseaudio", "tray"],
 
     "sway/workspaces": {
         "disable-scroll": true
@@ -18,7 +18,7 @@
         "tooltip": true,
         "tooltip-format": "{:%A, %B %d, %Y}"
     },
-"battery": {
+    "battery": {
         "states": {
             "warning": 30,
             "critical": 15
@@ -27,6 +27,24 @@
         "format-charging": "󰂄",
         "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
         "tooltip-format": "{capacity}% — {timeTo}"
+    },
+    "pulseaudio": {
+        "format": "{icon}",
+        "format-muted": "🔇",
+        "format-icons": {
+            "headphone": "🎧",
+            "hands-free": "🎧",
+            "headset": "🎧",
+            "phone": "📞",
+            "portable": "📞",
+            "car": "🚗",
+            "default": ["🔈", "🔉", "🔊"]
+        },
+        "tooltip-format": "{volume}%",
+        "scroll-step": 5,
+        "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "on-click-right": "/home/mschleiss/.config/sway/scripts/cycle-audio.sh",
+        "on-click-middle": "pavucontrol"
     },
     "tray": {
         "icon-size": 16,

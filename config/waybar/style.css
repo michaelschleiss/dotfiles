@@ -30,6 +30,10 @@ window#waybar {
     color: #f38ba8;
 }
 
+#pulseaudio {
+    margin-bottom: 5px;
+}
+
 #tray {
     margin-bottom: 5px;
 }
