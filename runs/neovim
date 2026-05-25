@@ -9,6 +9,8 @@ if ! command -v node &>/dev/null; then
   "$(dirname "$0")/base"
 fi
 
+ensure_cmd lazygit lazygit
+
 TARGET_VERSION="v0.11.5"
 
 if nvim --version 2>/dev/null | head -1 | grep -q "${TARGET_VERSION#v}"; then
