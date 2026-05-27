@@ -29,4 +29,41 @@ return {
 			{ "<leader>lg", "<cmd>LazyGit<cr>", desc = "LazyGit" },
 		},
 	},
+	{
+		"sindrets/diffview.nvim",
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"nvim-tree/nvim-web-devicons",
+		},
+		cmd = {
+			"DiffviewOpen",
+			"DiffviewClose",
+			"DiffviewToggleFiles",
+			"DiffviewFocusFiles",
+			"DiffviewRefresh",
+			"DiffviewFileHistory",
+		},
+		keys = {
+			{
+				"<leader>gd",
+				"<cmd>DiffviewOpen origin/dev...HEAD --imply-local<cr>",
+				desc = "Diffview origin/dev...HEAD",
+			},
+			{ "<leader>gD", "<cmd>DiffviewClose<cr>", desc = "Close Diffview" },
+		},
+		opts = {
+			file_panel = {
+				listing_style = "tree",
+				win_config = {
+					position = "left",
+					width = 40,
+				},
+			},
+			view = {
+				default = {
+					layout = "diff2_horizontal",
+				},
+			},
+		},
+	},
 }

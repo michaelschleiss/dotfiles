@@ -94,7 +94,7 @@ install_rtk() {
 
   # Pinned — upstream install.sh always grabs latest; pin the binary instead.
   # Bump manually.
-  local rtk_version="0.37.1"
+  local rtk_version="0.42.0"
 
   local asset
   case "${os_name}/${arch_name}" in
