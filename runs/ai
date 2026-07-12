@@ -5,31 +5,6 @@ source "$(dirname "$0")/_lib"
 
 export PATH="${HOME}/.local/bin:${PATH}"
 
-codex_target() {
-  case "${os_name}/${arch_name}" in
-    Darwin/arm64 | Darwin/aarch64) echo "aarch64-apple-darwin" ;;
-    Darwin/x86_64 | Darwin/amd64) echo "x86_64-apple-darwin" ;;
-    Linux/x86_64 | Linux/amd64) echo "x86_64-unknown-linux-musl" ;;
-    Linux/arm64 | Linux/aarch64) echo "aarch64-unknown-linux-musl" ;;
-    *) return 1 ;;
-  esac
-}
-
-install_codex_from_github() {
-  local target
-  target="$(codex_target)" || {
-    echo "Unsupported platform for codex: ${os_name} ${arch_name}" >&2
-    return 1
-  }
-
-  ensure_cmd curl curl
-  ensure_cmd tar tar
-
-  # Tarball contains `codex-${target}`; helper matches it via bin_name-* glob
-  # and installs as `codex`.
-  install_pinned_github_release codex openai/codex latest "codex-${target}.tar.gz"
-}
-
 run_silent_unless_failed() {
   local label="$1"
   shift
@@ -56,7 +31,12 @@ run_silent_unless_failed() {
 install_codex() {
   ensure_cmd rg ripgrep
 
-  if [[ "$os_name" == "Darwin" ]] && have brew; then
+  if [[ "$os_name" == "Darwin" ]]; then
+    if ! have brew; then
+      echo "Homebrew is required to install Codex on macOS (run runs/base first)" >&2
+      return 1
+    fi
+
     export HOMEBREW_NO_ENV_HINTS=1
 
     if ! brew list --cask codex >/dev/null 2>&1; then
@@ -85,7 +65,20 @@ install_codex() {
     return 0
   fi
 
-  install_codex_from_github
+  if [[ "$os_name" == "Linux" ]]; then
+    ensure_cmd curl curl
+    log "Installing/updating Codex (official standalone installer)"
+    curl -fsSL https://chatgpt.com/codex/install.sh | sh
+    if have codex; then
+      log "Codex ready: $(codex --version 2>/dev/null | head -n 1 || echo ok)"
+      return 0
+    fi
+    echo "Codex installation failed: codex not found on PATH" >&2
+    return 1
+  fi
+
+  echo "Unsupported platform for Codex: ${os_name} ${arch_name}" >&2
+  return 1
 }
 
 install_rtk() {
