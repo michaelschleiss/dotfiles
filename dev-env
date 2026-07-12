@@ -80,9 +80,10 @@ copy_file() {
   execute cp -- "$from" "$to/$name"
 }
 
-copy_dir config  ${XDG_CONFIG_HOME:-$HOME/.config}
-copy_dir local   ${XDG_HOME:-$HOME/.local}
-copy_file env/.fdignore $HOME
+copy_dir config "${XDG_CONFIG_HOME:-$HOME/.config}"
+# Executables intentionally live under ~/.local; there is no standard XDG bin variable.
+copy_dir local "$HOME/.local"
+copy_file env/.fdignore "$HOME"
 
 # Serena defaults: ensure a non-empty config exists at the legacy path (~/.serena)
 serena_src="$script_dir/config/serena/serena_config.yml"
