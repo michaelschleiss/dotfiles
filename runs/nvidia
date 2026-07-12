@@ -6,7 +6,7 @@ source "$(dirname "$0")/_lib"
 # NVIDIA driver setup using CUDA repo (nvidia-open for Blackwell GPUs)
 #
 # On hybrid laptops:
-# - Display: Intel GPU (configured via WLR_DRM_DEVICES in runs/sway)
+# - Display: Intel GPU (display policy must be configured separately)
 # - Compute: Nvidia GPU (CUDA/PyTorch/TensorFlow)
 
 get_ubuntu_version() {
