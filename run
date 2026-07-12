@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-script_dir="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
-filter=""
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 dry="0"
 verbose="0"
+requested=()
 
 cd "$script_dir"
-scripts=$(find runs -maxdepth 1 -mindepth 1 -type f -perm -u=x | sort)
+scripts=()
+while IFS= read -r script; do
+    scripts+=("$script")
+done < <(
+    [[ -x runs/base ]] && printf '%s\n' runs/base
+    find runs -maxdepth 1 -mindepth 1 -type f -perm -u=x ! -name base | sort
+)
 
 while [[ $# > 0 ]]; do
     case "$1" in
@@ -17,8 +23,12 @@ while [[ $# > 0 ]]; do
         --verbose|-v)
             verbose="1"
             ;;
+        --*)
+            echo "Unknown option: $1" >&2
+            exit 2
+            ;;
         *)
-            filter="$1"
+            requested+=("$1")
             ;;
     esac
     shift
@@ -26,20 +36,24 @@ done
 
 export RUN_VERBOSE="$verbose"
 
-if [[ -n "$filter" ]]; then
-    selected=""
-    for script in $scripts; do
-        if [[ "$(basename "$script")" == "$filter" ]]; then
-            selected="$script"
-            break
-        fi
-    done
+if (( ${#requested[@]} > 0 )); then
+    selected=()
+    for module in "${requested[@]}"; do
+        match=""
+        for script in "${scripts[@]}"; do
+            if [[ "$(basename "$script")" == "$module" ]]; then
+                match="$script"
+                break
+            fi
+        done
 
-    if [[ -z "$selected" ]]; then
-        echo "Unknown run module: $filter" >&2
-        exit 2
-    fi
-    scripts="$selected"
+        if [[ -z "$match" ]]; then
+            echo "Unknown run module: $module" >&2
+            exit 2
+        fi
+        selected+=("$match")
+    done
+    scripts=("${selected[@]}")
 fi
 
 log() {
@@ -59,9 +73,9 @@ execute() {
     "$@"
 }
 
-log "run: filter=$filter"
+log "run: modules=${requested[*]:-all}"
 
-for script in $scripts; do
+for script in "${scripts[@]}"; do
     log "running script: $script"
     execute ./$script
 done
