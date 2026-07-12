@@ -7,7 +7,7 @@ dry="0"
 verbose="0"
 
 cd "$script_dir"
-scripts=$(find runs -maxdepth 1 -mindepth 1 -type f -perm -u=x)
+scripts=$(find runs -maxdepth 1 -mindepth 1 -type f -perm -u=x | sort)
 
 while [[ $# > 0 ]]; do
     case "$1" in
@@ -25,6 +25,22 @@ while [[ $# > 0 ]]; do
 done
 
 export RUN_VERBOSE="$verbose"
+
+if [[ -n "$filter" ]]; then
+    selected=""
+    for script in $scripts; do
+        if [[ "$(basename "$script")" == "$filter" ]]; then
+            selected="$script"
+            break
+        fi
+    done
+
+    if [[ -z "$selected" ]]; then
+        echo "Unknown run module: $filter" >&2
+        exit 2
+    fi
+    scripts="$selected"
+fi
 
 log() {
     if [[ $dry == "1" ]]; then
@@ -46,12 +62,6 @@ execute() {
 log "run: filter=$filter"
 
 for script in $scripts; do
-    if echo "$script" | grep -qv -- "$filter"; then
-        if [[ $dry == "1" ]]; then
-            log "filtered: $filter -- $script"
-        fi
-        continue
-    fi
     log "running script: $script"
     execute ./$script
 done
