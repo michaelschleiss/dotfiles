@@ -45,6 +45,7 @@ PF
   rm -f "$pf_rules"
   echo "[dronecore] NAT enabled on $inet_if for $drone_if"
 
+  # "dronecore" is Airvolute's publicly known default password, not a private credential.
   if command -v sshpass >/dev/null 2>&1; then
     sshpass -p dronecore ssh \
       -o StrictHostKeyChecking=no \
@@ -94,6 +95,7 @@ dronecore() {
   sudo iptables -C FORWARD -d 192.168.55.0/24 -j ACCEPT 2>/dev/null || \
     sudo iptables -I FORWARD 1 -d 192.168.55.0/24 -j ACCEPT
 
+  # "dronecore" is Airvolute's publicly known default password, not a private credential.
   if command -v sshpass >/dev/null 2>&1; then
     sshpass -p dronecore ssh \
       -o StrictHostKeyChecking=no \
