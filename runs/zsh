@@ -10,6 +10,15 @@ if [[ "$os_name" == "Linux" ]]; then
   sudo apt-get install -qq -y zsh zsh-syntax-highlighting zsh-autosuggestions
 fi
 
+# Commands referenced by the generated interactive configuration.
+ensure_cmd direnv direnv
+ensure_cmd fzf fzf
+ensure_cmd bat bat
+if ! have bat && have batcat; then
+  mkdir -p "$HOME/.local/bin"
+  ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
+fi
+
 # --- Set zsh as default shell ---
 current_shell="$(basename "$SHELL")"
 if [[ "$current_shell" != "zsh" ]]; then
@@ -46,12 +55,18 @@ add_block_to_file "$HOME/.zshrc" "zsh-completion" "$ZSH_COMPLETION"
 # --- Aliases ---
 read -r -d '' ZSH_ALIASES << 'EOF' || true
 alias rsync="rsync -ahr --partial --partial-dir=/tmp/.rsync-partial --info=progress2 --no-inc-recursive -e 'ssh -T -o Compression=no' -c"
-alias cat='bat --paging=never'
+if command -v bat >/dev/null 2>&1; then
+  alias cat='bat --paging=never'
+elif command -v batcat >/dev/null 2>&1; then
+  alias cat='batcat --paging=never'
+fi
 EOF
 add_block_to_file "$HOME/.zshrc" "zsh-aliases" "$ZSH_ALIASES"
 
 # --- direnv hook ---
-add_block_to_file "$HOME/.zshrc" "direnv" 'eval "$(direnv hook zsh)"'
+add_block_to_file "$HOME/.zshrc" "direnv" 'if command -v direnv >/dev/null 2>&1; then
+  eval "$(direnv hook zsh)"
+fi'
 
 # --- fzf integration ---
 read -r -d '' ZSH_FZF << 'EOF' || true
@@ -61,7 +76,27 @@ if [[ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]]; then
 elif [[ -f ~/.fzf.zsh ]]; then
   source ~/.fzf.zsh
 fi
-bindkey '^G' fzf-cd-widget
+
+project-cd-widget() {
+  local root dir selected
+  local -a candidates
+
+  for root in "$HOME/personal" "$HOME/projects" "$HOME/work"; do
+    [[ -d "$root" ]] || continue
+    candidates+=("$root")
+    for dir in "$root"/* "$root"/*/*; do
+      [[ -d "$dir" ]] && candidates+=("$dir")
+    done
+  done
+
+  (( ${#candidates[@]} )) || return 0
+  selected=$(printf '%s\n' "${candidates[@]}" | fzf) || return 0
+  [[ -n "$selected" ]] || return 0
+  cd -- "$selected"
+  zle reset-prompt
+}
+zle -N project-cd-widget
+bindkey '^G' project-cd-widget
 EOF
 add_block_to_file "$HOME/.zshrc" "fzf" "$ZSH_FZF"
 
@@ -77,8 +112,8 @@ add_block_to_file "$HOME/.zshrc" "zsh-editing-mode" 'bindkey -e
 bindkey -A emacs main
 set -o emacs'
 
-add_block_to_file "$HOME/.zshrc" "zsh-keybindings" '# Ctrl+g: fuzzy cd into projects
-bindkey -s "^g" "cd \"\$(find ~/projects -type d -maxdepth 2 | fzf)\"\n"'
+# Replaced by project-cd-widget in the fzf block above.
+remove_block_from_file "$HOME/.zshrc" "zsh-keybindings"
 
 # --- Prompt ---
 add_block_to_file "$HOME/.zshrc" "zsh-prompt" "PS1='%n@%m %~ %# '"

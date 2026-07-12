@@ -1,25 +1,41 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-selected=$(find ~/ -mindepth 1 -maxdepth 1 -type d | fzf) 
+roots=("$HOME/personal" "$HOME/projects" "$HOME/work")
+candidates=()
+
+for root in "${roots[@]}"; do
+  [[ -d "$root" ]] || continue
+  candidates+=("$root")
+  for dir in "$root"/* "$root"/*/*; do
+    [[ -d "$dir" ]] && candidates+=("$dir")
+  done
+done
+
+if (( ${#candidates[@]} == 0 )); then
+  echo "No project directories found under ~/personal, ~/projects, or ~/work" >&2
+  exit 1
+fi
+
+selected=$(printf '%s\n' "${candidates[@]}" | fzf) || exit 0
 if [[ -z "$selected" ]]; then
   exit 0
 fi
 
-selected_name=$(basename $selected | tr ":,. " "____")
+selected_name=$(basename "$selected" | tr ":,. " "____")
 
 switch_to() {
-  if [[ -z "$TMUX" ]]; then
-    tmux attach-session -t $selected_name
+  if [[ -z "${TMUX:-}" ]]; then
+    tmux attach-session -t "$selected_name"
   else
-    tmux switch-client -t $selected_name
+    tmux switch-client -t "$selected_name"
   fi
 }
 
-if tmux has-session -t=$selected_name 2> /dev/null; then
+if tmux has-session -t="$selected_name" 2>/dev/null; then
   switch_to
 else
-  tmux new-session -ds $selected_name -c $selected
+  tmux new-session -d -s "$selected_name" -c "$selected"
   switch_to
-  tmux send-keys -t $selected_name "ready-tmux" ^M
+  tmux send-keys -t "$selected_name" "ready-tmux" Enter
 fi
-

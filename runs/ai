@@ -191,7 +191,7 @@ PY
 
 install_claude_browse() {
   local repo="https://github.com/michaelschleiss/claude-browse.git"
-  local clone_dir="${HOME}/projects/claude-browse"
+  local clone_dir="${HOME}/personal/claude-browse"
   local install_dir="${HOME}/.local/bin"
   local bin="${install_dir}/claude-browse"
 
