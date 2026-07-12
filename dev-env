@@ -40,9 +40,17 @@ backup_root="$backup_parent/$(date +%Y%m%d-%H%M%S)"
 # Prune backups older than 7 days (a mistaken delete is almost always noticed
 # within a day or two; anything older is noise).
 if [[ -d "$backup_parent" ]]; then
-  pruned=$(find "$backup_parent" -mindepth 1 -maxdepth 1 -type d -mtime +7 -print -exec rm -rf {} + | wc -l | tr -d ' ')
+  if [[ "$dry" == "1" ]]; then
+    pruned=$(find "$backup_parent" -mindepth 1 -maxdepth 1 -type d -mtime +7 -print | wc -l | tr -d ' ')
+  else
+    pruned=$(find "$backup_parent" -mindepth 1 -maxdepth 1 -type d -mtime +7 -print -exec rm -rf {} + | wc -l | tr -d ' ')
+  fi
   if [[ "$pruned" != "0" ]]; then
-    log "Pruned $pruned old backup(s) from $backup_parent"
+    if [[ "$dry" == "1" ]]; then
+      log "Would prune $pruned old backup(s) from $backup_parent"
+    else
+      log "Pruned $pruned old backup(s) from $backup_parent"
+    fi
   fi
 fi
 
