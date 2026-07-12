@@ -20,7 +20,14 @@ fi
 log "Installing essential packages"
 if [[ "$os_name" == "Darwin" ]]; then
   brew install -q git curl wget aria2 pkg-config dua-cli
-  brew install -q --cask nikitabobko/tap/aerospace
+  if brew list --cask aerospace &>/dev/null; then
+    brew uninstall --cask aerospace
+  fi
+  brew install -q acsandmann/tap/rift
+  if [[ ! -f "$HOME/Library/LaunchAgents/git.acsandmann.rift.plist" ]]; then
+    rift service install
+  fi
+  rift service start
   brew install -q --cask xquartz
 elif [[ "$os_name" == "Linux" ]]; then
   sudo apt-get update -qq
