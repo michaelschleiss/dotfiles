@@ -22,7 +22,7 @@ run_silent_unless_failed() {
   else
     local status="$?"
     echo "${LOG_PREFIX} ${label} failed; command output:" >&2
-    sed 's/^/[brew] /' "${log_file}" >&2
+    sed 's/^/  /' "${log_file}" >&2
     rm -f "${log_file}"
     return "${status}"
   fi
@@ -31,64 +31,32 @@ run_silent_unless_failed() {
 install_codex() {
   ensure_cmd rg ripgrep
 
-  if [[ "$os_name" == "Darwin" ]]; then
-    if ! have brew; then
-      echo "Homebrew is required to install Codex on macOS (run runs/base first)" >&2
-      return 1
-    fi
-
-    export HOMEBREW_NO_ENV_HINTS=1
-
-    if ! brew list --cask codex >/dev/null 2>&1; then
-      log "Installing codex (Homebrew cask)"
-      run_silent_unless_failed "brew install codex" brew install --cask codex
-      return 0
-    fi
-
-    log "Updating Homebrew metadata for codex cask"
-    run_silent_unless_failed "brew update" brew update
-
-    export HOMEBREW_NO_AUTO_UPDATE=1
-
-    local installed latest
-    installed="$(brew list --cask --versions codex 2>/dev/null | awk '{print $2}')"
-    latest="$(brew info --cask --json=v2 codex 2>/dev/null \
-      | python3 -c 'import json,sys; print(json.load(sys.stdin)["casks"][0]["version"])' 2>/dev/null || true)"
-
-    if [[ -n "$installed" && -n "$latest" && "$installed" == "$latest" ]]; then
-      log "codex already up to date: ${installed}"
-      return 0
-    fi
-
-    log "Updating codex (Homebrew cask): ${installed:-?} -> ${latest:-?}"
-    run_silent_unless_failed "brew upgrade codex" brew upgrade --cask codex
-    return 0
+  if have codex; then
+    log "codex already installed: $(codex --version 2>/dev/null | head -n 1 || echo ok)"
+    return
   fi
 
-  if [[ "$os_name" == "Linux" ]]; then
-    ensure_cmd curl curl
-    log "Installing/updating Codex (official standalone installer)"
-    curl -fsSL https://chatgpt.com/codex/install.sh | sh
-    if have codex; then
-      log "Codex ready: $(codex --version 2>/dev/null | head -n 1 || echo ok)"
-      return 0
-    fi
-    echo "Codex installation failed: codex not found on PATH" >&2
+  if [[ "$os_name" == "Darwin" ]]; then
+    have brew || { echo "Homebrew is required (run runs/base first)" >&2; return 1; }
+    log "Installing codex (Homebrew cask)"
+    run_silent_unless_failed "codex install" env HOMEBREW_NO_ENV_HINTS=1 brew install --cask codex
+  elif [[ "$os_name" == "Linux" ]]; then
+    log "Installing codex"
+    run_silent_unless_failed "codex install" bash -o pipefail -c \
+      'curl -fsSL https://chatgpt.com/codex/install.sh | sh'
+  else
+    echo "Unsupported platform for Codex: ${os_name} ${arch_name}" >&2
     return 1
   fi
 
-  echo "Unsupported platform for Codex: ${os_name} ${arch_name}" >&2
-  return 1
+  have codex || { echo "Codex installation failed" >&2; return 1; }
 }
 
 install_rtk() {
   ensure_cmd curl curl
   ensure_cmd tar tar
 
-  # Pinned — upstream install.sh always grabs latest; pin the binary instead.
-  # Bump manually.
   local rtk_version="0.42.0"
-
   local asset
   case "${os_name}/${arch_name}" in
     Darwin/arm64 | Darwin/aarch64) asset="rtk-aarch64-apple-darwin.tar.gz" ;;
@@ -104,54 +72,30 @@ install_rtk() {
     echo "rtk installation verification failed: rtk gain did not succeed" >&2
     return 1
   fi
-
-  # Advisory: flag if upstream has moved past our pin.
-  local latest
-  latest="$(curl -fsSL "https://api.github.com/repos/rtk-ai/rtk/releases/latest" 2>/dev/null \
-    | grep -m1 '"tag_name"' | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)"
-  if [[ -n "${latest}" && "${latest}" != "${rtk_version}" ]]; then
-    log "rtk pinned at ${rtk_version}; upstream ${latest} available — bump rtk_version in runs/ai"
-  fi
 }
 
 install_uv() {
-  # Always use the standard installer (not Homebrew) so that both uv and uvx
-  # land in ~/.local/bin/ — the canonical cross-platform location used by MCP
-  # configs. Homebrew puts them in /opt/homebrew/bin/ which GUI apps and MCP
-  # server spawners can't find.
   if [[ -x "${HOME}/.local/bin/uvx" ]]; then
     log "uv already installed: $("${HOME}/.local/bin/uv" --version 2>/dev/null || echo ok)"
-    return 0
+    return
   fi
 
-  log "Installing uv (standard installer -> ~/.local/bin/)"
-  curl -LsSf https://astral.sh/uv/install.sh | env UV_NO_MODIFY_PATH=1 sh
-
-  if [[ -x "${HOME}/.local/bin/uvx" ]]; then
-    log "Installed uv: $("${HOME}/.local/bin/uv" --version 2>/dev/null || echo ok)"
-    return 0
-  fi
-
-  echo "uv install failed: ${HOME}/.local/bin/uvx not found" >&2
-  return 1
+  log "Installing uv"
+  run_silent_unless_failed "uv install" bash -o pipefail -c \
+    'curl -LsSf https://astral.sh/uv/install.sh | env UV_NO_MODIFY_PATH=1 sh'
+  [[ -x "${HOME}/.local/bin/uvx" ]] || { echo "uv installation failed" >&2; return 1; }
 }
 
 install_claude_code() {
   if have claude; then
     log "claude already installed: $(claude --version 2>/dev/null | head -n 1 || echo ok)"
-    return 0
+    return
   fi
 
   log "Installing Claude Code"
-  curl -fsSL https://claude.ai/install.sh | bash
-
-  if have claude; then
-    log "Installed claude: $(claude --version 2>/dev/null | head -n 1 || echo ok)"
-    return 0
-  fi
-
-  echo "Claude Code installation failed" >&2
-  return 1
+  run_silent_unless_failed "Claude Code install" bash -o pipefail -c \
+    'curl -fsSL https://claude.ai/install.sh | bash'
+  have claude || { echo "Claude Code installation failed" >&2; return 1; }
 }
 
 configure_claude_mcp() {
@@ -185,33 +129,18 @@ PY
 install_claude_browse() {
   local repo="https://github.com/michaelschleiss/claude-browse.git"
   local clone_dir="${HOME}/personal/claude-browse"
-  local install_dir="${HOME}/.local/bin"
-  local bin="${install_dir}/claude-browse"
-
-  mkdir -p "${install_dir}"
+  local bin="${HOME}/.local/bin/claude-browse"
 
   if [[ -d "${clone_dir}" ]]; then
-    local before after
-    before="$(git -C "${clone_dir}" rev-parse HEAD 2>/dev/null || echo '')"
-    git -C "${clone_dir}" pull --ff-only --quiet 2>/dev/null || true
-    after="$(git -C "${clone_dir}" rev-parse HEAD 2>/dev/null || echo '')"
-    if [[ -n "$before" && "$before" != "$after" ]]; then
-      log "Updated claude-browse: ${before:0:7} -> ${after:0:7}"
-    else
-      log "claude-browse up to date (${after:0:7})"
-    fi
+    log "Updating claude-browse"
+    run_silent_unless_failed "claude-browse update" git -C "${clone_dir}" pull --ff-only
   else
     log "Installing claude-browse"
-    git clone "${repo}" "${clone_dir}"
+    run_silent_unless_failed "claude-browse install" git clone "${repo}" "${clone_dir}"
   fi
 
-  local target="${clone_dir}/claude-browse"
-  if [[ -L "${bin}" && "$(readlink "${bin}")" == "${target}" ]]; then
-    :
-  elif [[ -L "${bin}" || ! -e "${bin}" ]]; then
-    ln -sf "${target}" "${bin}"
-    log "Linked claude-browse -> ${bin}"
-  fi
+  mkdir -p "${HOME}/.local/bin"
+  [[ -e "${bin}" && ! -L "${bin}" ]] || ln -sf "${clone_dir}/claude-browse" "${bin}"
 }
 
 main() {
@@ -222,19 +151,14 @@ main() {
   install_claude_browse
   configure_claude_mcp
 
-  # Shell integration
+  mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/codex"
+
   add_block_to_file "$HOME/.zprofile" "ai-env" 'export CLAUDE_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/claude"
 export CODEX_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/codex"
 export SERENA_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/serena"'
 
   add_block_to_file "$HOME/.zshrc" "codex-completion" 'if [[ -o interactive ]] && command -v codex >/dev/null 2>&1; then
-  if ! whence -w compdef >/dev/null 2>&1; then
-    autoload -Uz compinit
-    compinit -i
-  fi
-  if whence -w compdef >/dev/null 2>&1; then
-    eval "$(codex completion zsh)"
-  fi
+  eval "$(codex completion zsh)"
 fi'
 
   add_block_to_file "$HOME/.zshrc" "ai-aliases" 'alias cc="claude --allow-dangerously-skip-permissions"'

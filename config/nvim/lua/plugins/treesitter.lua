@@ -1,9 +1,10 @@
 return {
   "nvim-treesitter/nvim-treesitter",
+  branch = "master",
   build = ":TSUpdate",
   config = function()
     require("nvim-treesitter.configs").setup({
-      ensure_installed = { "lua", "python", "c", "cpp", "markdown", "yaml", "latex", "bibtex" },
+      ensure_installed = { "lua", "python", "c", "cpp", "markdown", "yaml", "bibtex" },
       auto_install = true,
       highlight = {
         enable = true,

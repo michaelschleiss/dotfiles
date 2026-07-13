@@ -19,7 +19,7 @@ fi
 # --- Essential tools ---
 log "Installing essential packages"
 if [[ "$os_name" == "Darwin" ]]; then
-  brew install -q git curl wget aria2 pkg-config dua-cli
+  brew install -q git curl wget aria2 pkg-config dua-cli node
   if brew list --cask aerospace &>/dev/null; then
     brew uninstall --cask aerospace
   fi
