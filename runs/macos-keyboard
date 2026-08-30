@@ -19,6 +19,15 @@ log "Setting fast key repeat"
 defaults write -g KeyRepeat -int 1
 defaults write -g InitialKeyRepeat -int 10
 
+log "Mapping Caps Lock -> Control (native modifier mapping)"
+# Same setting as System Settings > Keyboard > Modifier Keys. It is keyed by
+# keyboard vendor-product id, so write it for every keyboard currently attached.
+# HID usages: 0x700000039 = Caps Lock, 0x7000000E0 = Left Control.
+while read -r vendor product; do
+  defaults -currentHost write -g "com.apple.keyboard.modifiermapping.$((vendor))-$((product))-0" -array \
+    '<dict><key>HIDKeyboardModifierMappingSrc</key><integer>30064771129</integer><key>HIDKeyboardModifierMappingDst</key><integer>30064771296</integer></dict>'
+done < <(hidutil list --matching '{"PrimaryUsagePage":1,"PrimaryUsage":6}' | awk '$1 ~ /^0x/ {print $1, $2}' | sort -u)
+
 log "Installing ${label} LaunchAgent"
 cat > "${plist_path}" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
