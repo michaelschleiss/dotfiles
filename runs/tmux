@@ -3,13 +3,10 @@ set -euo pipefail
 LOG_PREFIX="[tmux]"
 source "$(dirname "$0")/_lib"
 
-# First install tmux
-if [[ ! -d ~/tmux ]]; then
-  git clone -q https://github.com/tmux/tmux.git ~/tmux
-fi
-cd ~/tmux
-git fetch -q
-git checkout -q 3.5a
+build_dir="$(mktemp -d)"
+trap 'rm -rf "$build_dir"' EXIT
+git clone -q --branch 3.5a --depth 1 https://github.com/tmux/tmux.git "$build_dir"
+cd "$build_dir"
 
 if [[ "$os_name" == "Darwin" ]]; then
   brew install -q automake pkg-config libevent ncurses utf8proc
@@ -33,10 +30,7 @@ fi
 sh autogen.sh >/dev/null
 ./configure --enable-utf8proc >/dev/null && make -s -j"$cores"
 sudo make -s install
-cd $HOME
-rm -rf ~/tmux
 
-# install tpm
 mkdir -p ~/.tmux/plugins
 if [[ ! -d ~/.tmux/plugins/tpm ]]; then
   git clone -q https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm

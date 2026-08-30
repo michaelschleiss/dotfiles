@@ -3,28 +3,10 @@ set -euo pipefail
 LOG_PREFIX="[nvidia]"
 source "$(dirname "$0")/_lib"
 
-# NVIDIA driver setup using CUDA repo (nvidia-open for Blackwell GPUs)
-#
+# NVIDIA driver setup using CUDA repo (nvidia-open for Blackwell GPUs).
 # On hybrid laptops:
 # - Display: Intel GPU (display policy must be configured separately)
 # - Compute: Nvidia GPU (CUDA/PyTorch/TensorFlow)
-
-get_ubuntu_version() {
-  if [[ -f /etc/os-release ]]; then
-    # shellcheck disable=SC1091
-    source /etc/os-release
-    echo "${VERSION_ID//./}"
-  else
-    echo ""
-  fi
-}
-
-check_nvidia_gpu() {
-  if ! lspci | grep -qi nvidia; then
-    echo "No NVIDIA GPU detected. Exiting." >&2
-    exit 1
-  fi
-}
 
 remove_existing_nvidia() {
   log "Removing existing NVIDIA packages..."
@@ -47,11 +29,6 @@ install_cuda_keyring() {
   sudo apt-get update -qq
 }
 
-install_nvidia_driver() {
-  log "Installing NVIDIA open kernel modules (required for Blackwell GPUs)..."
-  sudo apt-get install -qq -y nvidia-open >/dev/null
-}
-
 install_nvidia_container_toolkit() {
   if dpkg -l | grep -q nvidia-container-toolkit; then
     log "NVIDIA Container Toolkit already installed"
@@ -62,9 +39,9 @@ install_nvidia_container_toolkit() {
 
   # Add nvidia-container-toolkit repository
   curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
-  curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
-    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+  curl -sL https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+    | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+    | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 
   sudo apt-get update -qq
   sudo apt-get install -qq -y nvidia-container-toolkit
@@ -76,22 +53,18 @@ install_nvidia_container_toolkit() {
   log "NVIDIA Container Toolkit installed and Docker configured"
 }
 
-verify_installation() {
-  log "Verify after reboot with: nvidia-smi"
-  log "Test Docker GPU access with: docker run --rm --gpus all nvidia/cuda:12.6.0-base-ubuntu22.04 nvidia-smi"
-}
-
 main() {
-  local os_name
-  os_name="$(uname -s)"
-
   if [[ "${os_name}" != "Linux" ]]; then
     echo "This script only supports Linux." >&2
     exit 1
   fi
 
-  local ubuntu_ver
-  ubuntu_ver="$(get_ubuntu_version)"
+  local ubuntu_ver=""
+  if [[ -f /etc/os-release ]]; then
+    # shellcheck disable=SC1091
+    source /etc/os-release
+    ubuntu_ver="${VERSION_ID//./}"
+  fi
 
   if [[ -z "${ubuntu_ver}" ]]; then
     echo "Could not detect Ubuntu version." >&2
@@ -100,7 +73,10 @@ main() {
 
   log "Detected Ubuntu ${ubuntu_ver}"
 
-  check_nvidia_gpu
+  if ! lspci | grep -qi nvidia; then
+    echo "No NVIDIA GPU detected. Exiting." >&2
+    exit 1
+  fi
 
   # Check if nvidia driver is already installed
   if have nvidia-smi && nvidia-smi >/dev/null 2>&1; then
@@ -109,7 +85,8 @@ main() {
     log "Installing NVIDIA driver..."
     remove_existing_nvidia
     install_cuda_keyring "${ubuntu_ver}"
-    install_nvidia_driver
+    log "Installing NVIDIA open kernel modules (required for Blackwell GPUs)..."
+    sudo apt-get install -qq -y nvidia-open >/dev/null
     log "Driver installed - reboot required before container toolkit will work"
   fi
 
@@ -119,7 +96,8 @@ main() {
   sudo systemctl enable nvidia-suspend.service nvidia-resume.service nvidia-hibernate.service
 
   install_nvidia_container_toolkit
-  verify_installation
+  log "Verify after reboot with: nvidia-smi"
+  log "Test Docker GPU access with: docker run --rm --gpus all nvidia/cuda:12.6.0-base-ubuntu22.04 nvidia-smi"
 
   log "Done!"
 }

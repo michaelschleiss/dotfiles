@@ -5,11 +5,7 @@
 # before the first log() call; defaults to empty (no prefix).
 : "${LOG_PREFIX:=}"
 log() {
-    if [[ -n "$LOG_PREFIX" ]]; then
-        echo "$LOG_PREFIX $*"
-    else
-        echo "$*"
-    fi
+    echo "${LOG_PREFIX:+$LOG_PREFIX }$*"
 }
 
 # OS / arch detection. Readonly so callers don't accidentally shadow them.
@@ -36,8 +32,7 @@ ensure_cmd() {
         log "Installing ${pkg} (Homebrew)"
         brew install "$pkg"
         return 0
-    fi
-    if [[ "$os_name" == "Linux" ]] && have apt-get; then
+    elif [[ "$os_name" == "Linux" ]] && have apt-get; then
         log "Installing ${pkg} (apt)"
         sudo apt-get update
         sudo apt-get install -y "$pkg"
@@ -88,9 +83,7 @@ install_pinned_github_release() {
 
     local tmpdir
     tmpdir="$(mktemp -d)"
-    local url="https://github.com/${repo}/releases/download/v${desired}/${asset}"
-
-    curl -fsSL "${url}" -o "${tmpdir}/${asset}"
+    curl -fsSL "https://github.com/${repo}/releases/download/v${desired}/${asset}" -o "${tmpdir}/${asset}"
     tar -xzf "${tmpdir}/${asset}" -C "${tmpdir}"
 
     local extracted
@@ -107,7 +100,7 @@ install_pinned_github_release() {
 
 # Cross-platform sed -i (macOS requires '' argument, Linux doesn't)
 _sed_i() {
-    if [[ "$(uname -s)" == "Darwin" ]]; then
+    if [[ "$os_name" == "Darwin" ]]; then
         sed -i '' "$@"
     else
         sed -i "$@"
@@ -123,11 +116,8 @@ _re_escape() {
 # Usage: add_block_to_file <file> <marker_name> <content>
 # Example: add_block_to_file ~/.zsh_profile "my-tool" "alias foo='bar'"
 add_block_to_file() {
-    local file="$1"
-    local name="$2"
-    local content="$3"
-    local marker="# >>> $name >>>"
-    local marker_end="# <<< $name <<<"
+    local file="$1" name="$2" content="$3"
+    local marker="# >>> $name >>>" marker_end="# <<< $name <<<"
     local marker_re marker_end_re
     marker_re="$(_re_escape "$marker")"
     marker_end_re="$(_re_escape "$marker_end")"
@@ -158,10 +148,8 @@ EOF
 # Remove a block from a file by marker name
 # Usage: remove_block_from_file <file> <marker_name>
 remove_block_from_file() {
-    local file="$1"
-    local name="$2"
-    local marker="# >>> $name >>>"
-    local marker_end="# <<< $name <<<"
+    local file="$1" name="$2"
+    local marker="# >>> $name >>>" marker_end="# <<< $name <<<"
     local marker_re marker_end_re
     marker_re="$(_re_escape "$marker")"
     marker_end_re="$(_re_escape "$marker_end")"

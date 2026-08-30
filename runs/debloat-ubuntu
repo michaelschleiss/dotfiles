@@ -14,6 +14,10 @@ apt_remove() {
     || true
 }
 
+apt_mark_manual() {
+  sudo apt-mark manual "$@" 2>/dev/null || true
+}
+
 if [[ "$os_name" != "Linux" ]]; then
   log "Only for Linux, skipping"
   exit 0
@@ -27,20 +31,17 @@ fi
 
 log "Marking essential packages as manual (prevents cascade removal)"
 # Audio/Video stack (needed by most desktops)
-sudo apt-mark manual pipewire pipewire-pulse wireplumber 2>/dev/null || true
+apt_mark_manual pipewire pipewire-pulse wireplumber
 # Bluetooth
-sudo apt-mark manual blueman 2>/dev/null || true
+apt_mark_manual blueman
 # Key libraries that tend to get orphaned
-sudo apt-mark manual \
+apt_mark_manual \
   python3-pil python3-pexpect \
   gstreamer1.0-plugins-good gstreamer1.0-plugins-base \
   libprotobuf32t64 libharfbuzz-icu0 \
-  usb-modeswitch \
-  2>/dev/null || true
+  usb-modeswitch
 # If using Sway/Wayland with nvidia
-sudo apt-mark manual \
-  libnvidia-egl-wayland1 libnvidia-egl-gbm1 \
-  2>/dev/null || true
+apt_mark_manual libnvidia-egl-wayland1 libnvidia-egl-gbm1
 
 log "Removing all snaps"
 if command -v snap &> /dev/null; then
@@ -70,9 +71,7 @@ apt_remove snapd
 
 log "Cleaning up snap directories"
 rm -rf ~/snap 2>/dev/null || true
-sudo rm -rf /var/snap 2>/dev/null || true
-sudo rm -rf /var/lib/snapd 2>/dev/null || true
-sudo rm -rf /var/cache/snapd 2>/dev/null || true
+sudo rm -rf /var/snap /var/lib/snapd /var/cache/snapd 2>/dev/null || true
 # /snap may have zombie mounts - check and remove if clear
 if mount | grep -q '/snap'; then
   log "Note: /snap has zombie mounts, will be cleaned after reboot"
@@ -81,8 +80,7 @@ else
 fi
 
 log "Cleaning up snap systemd units"
-sudo rm -f /etc/systemd/system/snap-*.mount
-sudo rm -f /etc/systemd/system/snap.mount
+sudo rm -f /etc/systemd/system/snap-*.mount /etc/systemd/system/snap.mount
 
 log "Cleaning up snap AppArmor profiles"
 sudo rm -f /etc/apparmor.d/*snap*

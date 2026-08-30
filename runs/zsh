@@ -3,7 +3,13 @@ set -euo pipefail
 LOG_PREFIX="[zsh]"
 source "$(dirname "$0")/_lib"
 
-# --- Install zsh + plugins (Linux only, macOS has zsh built-in) ---
+add_zsh_block() {
+  local content
+  content="$(cat)"
+  add_block_to_file "$HOME/.zshrc" "$1" "$content"
+}
+
+# macOS includes zsh; Linux needs the shell and packaged plugins.
 if [[ "$os_name" == "Linux" ]]; then
   log "Installing zsh and plugins"
   sudo apt-get update -qq
@@ -19,17 +25,15 @@ if ! have bat && have batcat; then
   ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
 fi
 
-# --- Set zsh as default shell ---
-current_shell="$(basename "$SHELL")"
-if [[ "$current_shell" != "zsh" ]]; then
+# Set zsh as default shell.
+if [[ "${SHELL##*/}" != "zsh" ]]; then
   log "Setting zsh as default shell"
-  chsh -s "$(which zsh)"
+  chsh -s "$(command -v zsh)"
 else
   log "zsh already default shell"
 fi
 
-# --- History settings ---
-read -r -d '' ZSH_HISTORY << 'EOF' || true
+add_zsh_block "zsh-history" <<'EOF'
 HISTFILE=~/.zsh_history
 HISTSIZE=100000
 SAVEHIST=900000
@@ -40,20 +44,16 @@ setopt HIST_VERIFY
 setopt EXTENDED_HISTORY
 setopt HIST_IGNORE_SPACE
 EOF
-add_block_to_file "$HOME/.zshrc" "zsh-history" "$ZSH_HISTORY"
 
-# --- Completion config ---
-read -r -d '' ZSH_COMPLETION << 'EOF' || true
+add_zsh_block "zsh-completion" <<'EOF'
 zmodload zsh/complist
 zstyle ':completion:*' menu select
 zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' 'r:|[._-]=* r:|=*'
 autoload -Uz compinit && compinit
 EOF
-add_block_to_file "$HOME/.zshrc" "zsh-completion" "$ZSH_COMPLETION"
 
-# --- Aliases ---
-read -r -d '' ZSH_ALIASES << 'EOF' || true
+add_zsh_block "zsh-aliases" <<'EOF'
 alias rsync="rsync -ahr --partial --partial-dir=/tmp/.rsync-partial --info=progress2 --no-inc-recursive -e 'ssh -T -o Compression=no' -c"
 if command -v bat >/dev/null 2>&1; then
   alias cat='bat --paging=never'
@@ -61,15 +61,12 @@ elif command -v batcat >/dev/null 2>&1; then
   alias cat='batcat --paging=never'
 fi
 EOF
-add_block_to_file "$HOME/.zshrc" "zsh-aliases" "$ZSH_ALIASES"
 
-# --- direnv hook ---
 add_block_to_file "$HOME/.zshrc" "direnv" 'if command -v direnv >/dev/null 2>&1; then
   eval "$(direnv hook zsh)"
 fi'
 
-# --- fzf integration ---
-read -r -d '' ZSH_FZF << 'EOF' || true
+add_zsh_block "fzf" <<'EOF'
 if [[ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]]; then
   source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
   source /opt/homebrew/opt/fzf/shell/completion.zsh
@@ -98,16 +95,12 @@ project-cd-widget() {
 zle -N project-cd-widget
 bindkey '^G' project-cd-widget
 EOF
-add_block_to_file "$HOME/.zshrc" "fzf" "$ZSH_FZF"
 
-# --- Go ---
-read -r -d '' ZSH_GO << 'EOF' || true
+add_zsh_block "go" <<'EOF'
 export GOPATH=~/.go
 export PATH=$PATH:~/.go/bin
 EOF
-add_block_to_file "$HOME/.zshrc" "go" "$ZSH_GO"
 
-# --- Keybindings ---
 add_block_to_file "$HOME/.zshrc" "zsh-editing-mode" 'bindkey -e
 bindkey -A emacs main
 set -o emacs'
@@ -115,17 +108,12 @@ set -o emacs'
 # Replaced by project-cd-widget in the fzf block above.
 remove_block_from_file "$HOME/.zshrc" "zsh-keybindings"
 
-# --- Prompt ---
 add_block_to_file "$HOME/.zshrc" "zsh-prompt" "PS1='%n@%m %~ %# '"
-
-# --- Options ---
 add_block_to_file "$HOME/.zshrc" "zsh-options" 'setopt autocd'
 
-# --- Plugins ---
-read -r -d '' ZSH_PLUGINS << 'EOF' || true
+add_zsh_block "zsh-plugins" <<'EOF'
 source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
 source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh 2>/dev/null
 EOF
-add_block_to_file "$HOME/.zshrc" "zsh-plugins" "$ZSH_PLUGINS"
 
 log "Done - restart terminal or run: exec zsh"

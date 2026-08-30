@@ -3,12 +3,8 @@ set -euo pipefail
 LOG_PREFIX="[messaging]"
 source "$(dirname "$0")/_lib"
 
-# Messaging apps: Telegram, Slack, Thunderbird
-
 # --- Telegram ---
-if command -v telegram-desktop &>/dev/null || [[ -x "$HOME/.local/bin/Telegram/Telegram" ]] || [[ -d "/Applications/Telegram.app" ]]; then
-  log "Telegram already installed"
-else
+if ! have telegram-desktop && [[ ! -x "$HOME/.local/bin/Telegram/Telegram" ]] && [[ ! -d "/Applications/Telegram.app" ]]; then
   if [[ "$os_name" == "Darwin" ]]; then
     log "Installing Telegram (brew cask)"
     brew install --cask telegram
@@ -27,9 +23,7 @@ else
 fi
 
 # --- Slack ---
-if command -v slack &>/dev/null || [[ -d "/Applications/Slack.app" ]]; then
-  log "Slack already installed"
-else
+if ! have slack && [[ ! -d "/Applications/Slack.app" ]]; then
   if [[ "$os_name" == "Darwin" ]]; then
     log "Installing Slack (brew cask)"
     brew install --cask slack
@@ -43,19 +37,15 @@ else
 fi
 
 # --- Thunderbird (Linux only) ---
-if [[ "$os_name" == "Linux" ]]; then
-  if command -v thunderbird &>/dev/null; then
-    log "Thunderbird already installed"
-  else
-    log "Installing Thunderbird (Mozilla PPA)"
-    sudo add-apt-repository -y ppa:mozillateam/ppa >/dev/null
-    # Prefer PPA version over any future Ubuntu packages
-    echo 'Package: thunderbird*
+if [[ "$os_name" == "Linux" ]] && ! have thunderbird; then
+  log "Installing Thunderbird (Mozilla PPA)"
+  sudo add-apt-repository -y ppa:mozillateam/ppa >/dev/null
+  # Prefer PPA version over any future Ubuntu packages
+  echo 'Package: thunderbird*
 Pin: release o=LP-PPA-mozillateam
 Pin-Priority: 1001' | sudo tee /etc/apt/preferences.d/mozilla-thunderbird >/dev/null
-    sudo apt-get update -qq
-    sudo apt-get install -qq -y thunderbird
-  fi
+  sudo apt-get update -qq
+  sudo apt-get install -qq -y thunderbird
 fi
 
 log "Done"

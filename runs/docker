@@ -3,111 +3,98 @@ set -euo pipefail
 LOG_PREFIX="[docker]"
 source "$(dirname "$0")/_lib"
 
-# Docker and DevPod installation
-
 ensure_docker_group() {
-  if [[ "$(uname -s)" == "Linux" ]]; then
-    if command -v getent >/dev/null 2>&1; then
-      if ! getent group docker >/dev/null 2>&1; then
-        log "docker group not found; skipping group setup"
-        return 0
-      fi
-    fi
-
-    if ! groups "$USER" | grep -qw docker; then
-      log "Adding $USER to docker group"
-      sudo usermod -aG docker "$USER"
-      log "Logout and login for group changes to take effect (or run: newgrp docker)"
-    else
-      log "$USER already in docker group"
-    fi
+  [[ "$os_name" == "Linux" ]] || return 0
+  if have getent && ! getent group docker >/dev/null 2>&1; then
+    log "docker group not found; skipping group setup"
+    return 0
   fi
+
+  if groups "$USER" | grep -qw docker; then
+    log "$USER already in docker group"
+    return 0
+  fi
+  log "Adding $USER to docker group"
+  sudo usermod -aG docker "$USER"
+  log "Logout and login for group changes to take effect (or run: newgrp docker)"
 }
 
-# ============ Docker Installation ============
+install_docker() {
+  case "$os_name" in
+    Darwin)
+      log "Installing Docker Desktop (brew cask)"
+      brew install --cask docker
+      ;;
+    Linux)
+      log "Installing Docker"
+      sudo apt update -qq
+      sudo apt install -qq -y ca-certificates curl gnupg
 
-if command -v docker &>/dev/null; then
+      # Abort rather than trusting a repository key with an unexpected fingerprint.
+      local expected_fp="9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
+      local tmp_key actual_fp
+      tmp_key="$(mktemp)"
+      trap 'rm -f "$tmp_key"' EXIT
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o "$tmp_key"
+      actual_fp="$(gpg --show-keys --with-colons --with-fingerprint "$tmp_key" |
+        awk -F: '/^fpr:/ {print $10; exit}')"
+      if [[ "$actual_fp" != "$expected_fp" ]]; then
+        printf '%s\n' \
+          "[docker] Docker GPG fingerprint mismatch!" \
+          "[docker]   expected: $expected_fp" \
+          "[docker]   got:      ${actual_fp:-<none>}" >&2
+        exit 1
+      fi
+      log "Docker GPG fingerprint verified: $actual_fp"
+      sudo install -m 0755 -d /etc/apt/keyrings
+      sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg < "$tmp_key"
+      sudo chmod 0644 /etc/apt/keyrings/docker.gpg
+      rm -f "$tmp_key"
+      trap - EXIT
+
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" |
+        sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+
+      sudo apt update -qq
+      sudo apt install -qq -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+      ;;
+  esac
+}
+
+if have docker; then
   log "Docker already installed"
   docker --version
-  ensure_docker_group
 else
-  if [[ "$os_name" == "Darwin" ]]; then
-    log "Installing Docker Desktop (brew cask)"
-    brew install --cask docker
-
-  elif [[ "$os_name" == "Linux" ]]; then
-    log "Installing Docker"
-
-    # Install dependencies
-    sudo apt update -qq
-    sudo apt install -qq -y ca-certificates curl gnupg
-
-    # Add Docker's official GPG key — verify fingerprint before trusting it.
-    # Source: https://docs.docker.com/engine/install/ubuntu/
-    # A bad fingerprint here means aborting installation, not silently trusting
-    # an attacker-controlled keyring for all future `apt install docker*`.
-    expected_fp="9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
-    tmp_key="$(mktemp)"
-    trap 'rm -f "$tmp_key"' EXIT
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o "$tmp_key"
-    actual_fp="$(gpg --show-keys --with-colons --with-fingerprint "$tmp_key" \
-      | awk -F: '/^fpr:/ {print $10; exit}')"
-    if [[ "$actual_fp" != "$expected_fp" ]]; then
-      echo "[docker] Docker GPG fingerprint mismatch!" >&2
-      echo "[docker]   expected: $expected_fp" >&2
-      echo "[docker]   got:      ${actual_fp:-<none>}" >&2
-      exit 1
-    fi
-    log "Docker GPG fingerprint verified: $actual_fp"
-    sudo install -m 0755 -d /etc/apt/keyrings
-    sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg < "$tmp_key"
-    sudo chmod 0644 /etc/apt/keyrings/docker.gpg
-    rm -f "$tmp_key"
-    trap - EXIT
-
-    # Add the repository
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-    # Install Docker
-    sudo apt update -qq
-    sudo apt install -qq -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-    ensure_docker_group
-  fi
+  install_docker
 fi
+ensure_docker_group
 
-# ============ DevPod Installation ============
-
-if command -v devpod &>/dev/null; then
+if have devpod; then
   log "DevPod already installed"
   devpod version
 else
-  if [[ "$os_name" == "Darwin" ]]; then
-    log "Installing DevPod (brew cask)"
-    brew install --cask devpod
-
-  elif [[ "$os_name" == "Linux" ]]; then
-    log "Installing DevPod CLI"
-
-    # Detect architecture
-    arch=$(uname -m)
-    if [[ "$arch" == "x86_64" ]]; then
-      arch_suffix="amd64"
-    elif [[ "$arch" == "aarch64" || "$arch" == "arm64" ]]; then
-      arch_suffix="arm64"
-    else
-      log "Unsupported architecture: $arch"
-      exit 1
-    fi
-
-    # Download and install DevPod CLI
-    curl -L -o devpod "https://github.com/loft-sh/devpod/releases/latest/download/devpod-linux-${arch_suffix}"
-    sudo install -c -m 0755 devpod /usr/local/bin
-    rm -f devpod
-
-    log "DevPod installed successfully"
-    devpod version
-  fi
+  case "$os_name" in
+    Darwin)
+      log "Installing DevPod (brew cask)"
+      brew install --cask devpod
+      ;;
+    Linux)
+      case "$arch_name" in
+        x86_64) arch_suffix="amd64" ;;
+        aarch64 | arm64) arch_suffix="arm64" ;;
+        *) log "Unsupported architecture: $arch_name"; exit 1 ;;
+      esac
+      log "Installing DevPod CLI"
+      tmp_devpod="$(mktemp)"
+      trap 'rm -f "$tmp_devpod"' EXIT
+      curl -fsSL -o "$tmp_devpod" "https://github.com/loft-sh/devpod/releases/latest/download/devpod-linux-${arch_suffix}"
+      sudo install -c -m 0755 "$tmp_devpod" /usr/local/bin/devpod
+      rm -f "$tmp_devpod"
+      trap - EXIT
+      log "DevPod installed successfully"
+      devpod version
+      ;;
+  esac
 fi
 
 log "Installation complete"

@@ -5,8 +5,7 @@ source "$(dirname "$0")/_lib"
 
 # Dronecore (Jetson) SSH setup - works on macOS and Linux
 
-read -r -d '' DRONECORE_FUNC_MAC <<'EOF' || true
-dronecore() {
+read -r -d '' DRONECORE_NETWORK_MAC <<'EOF' || true
   local inet_if="${1:-$(route get default 2>/dev/null | awk '/interface:/ {print $2}')}"
   local drone_if pf_rules pf_anchor="com.apple/dronecore"
 
@@ -44,33 +43,9 @@ PF
   sudo pfctl -a "$pf_anchor" -f "$pf_rules" >/dev/null
   rm -f "$pf_rules"
   echo "[dronecore] NAT enabled on $inet_if for $drone_if"
-
-  # "dronecore" is Airvolute's publicly known default password, not a private credential.
-  if command -v sshpass >/dev/null 2>&1; then
-    sshpass -p dronecore ssh \
-      -o StrictHostKeyChecking=accept-new \
-      -o LogLevel=ERROR \
-      dcs_user@192.168.55.1
-  elif command -v expect >/dev/null 2>&1; then
-    expect -c '
-set timeout -1
-spawn ssh -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR dcs_user@192.168.55.1
-expect {
-  -re "(?i)are you sure you want to continue connecting" { send "yes\r"; exp_continue }
-  -re "(?i)password:" { send "dronecore\r" }
-  eof { exit 1 }
-}
-interact
-'
-  else
-    echo "[dronecore] ERROR: Install sshpass or expect"
-    return 1
-  fi
-}
 EOF
 
-read -r -d '' DRONECORE_FUNC_LINUX <<'EOF' || true
-dronecore() {
+read -r -d '' DRONECORE_NETWORK_LINUX <<'EOF' || true
   local drone_if
 
   drone_if="$(ip -o -4 addr show | awk '$4 ~ /^192\.168\.55\./ { print $2; exit }')"
@@ -93,7 +68,9 @@ dronecore() {
     sudo iptables -I FORWARD 1 -s 192.168.55.0/24 -j ACCEPT
   sudo iptables -C FORWARD -d 192.168.55.0/24 -j ACCEPT 2>/dev/null || \
     sudo iptables -I FORWARD 1 -d 192.168.55.0/24 -j ACCEPT
+EOF
 
+read -r -d '' DRONECORE_SSH <<'EOF' || true
   # "dronecore" is Airvolute's publicly known default password, not a private credential.
   if command -v sshpass >/dev/null 2>&1; then
     sshpass -p dronecore ssh \
@@ -115,13 +92,19 @@ interact
     echo "[dronecore] ERROR: Install sshpass or expect"
     return 1
   fi
-}
 EOF
 
+if [[ "$os_name" == "Darwin" ]]; then
+  DRONECORE_NETWORK="$DRONECORE_NETWORK_MAC"
+else
+  DRONECORE_NETWORK="$DRONECORE_NETWORK_LINUX"
+fi
+printf -v DRONECORE_FUNC 'dronecore() {\n%s\n%s\n}' "$DRONECORE_NETWORK" "$DRONECORE_SSH"
+
 # Validate SSH helper availability up front so the installed function is usable.
-if command -v sshpass &>/dev/null; then
+if have sshpass; then
   log "Using sshpass for password SSH"
-elif command -v expect &>/dev/null; then
+elif have expect; then
   log "Using expect fallback for password SSH"
 else
   log "ERROR: Neither sshpass nor expect is available"
@@ -142,10 +125,6 @@ fi
 touch "$PROFILE"
 _sed_i "/^alias dronecore=/d" "$PROFILE" 2>/dev/null || true
 
-if [[ "$os_name" == "Darwin" ]]; then
-  add_block_to_file "$PROFILE" "dronecore" "$DRONECORE_FUNC_MAC"
-else
-  add_block_to_file "$PROFILE" "dronecore" "$DRONECORE_FUNC_LINUX"
-fi
+add_block_to_file "$PROFILE" "dronecore" "$DRONECORE_FUNC"
 
 log "Done! Run 'source $PROFILE' or restart shell, then use: dronecore"

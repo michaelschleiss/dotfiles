@@ -3,17 +3,10 @@ set -euo pipefail
 LOG_PREFIX="[base]"
 source "$(dirname "$0")/_lib"
 
-# Base system setup for a fresh install
-# Run this first before other scripts
-
 # --- Homebrew (macOS) ---
-if [[ "$os_name" == "Darwin" ]]; then
-  if command -v brew &>/dev/null; then
-    log "Homebrew already installed"
-  else
-    log "Installing Homebrew"
-    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" >/dev/null
-  fi
+if [[ "$os_name" == "Darwin" ]] && ! have brew; then
+  log "Installing Homebrew"
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" >/dev/null
 fi
 
 # --- Essential tools ---
@@ -66,9 +59,7 @@ elif [[ "$os_name" == "Linux" ]]; then
 fi
 
 # --- direnv (per-directory env vars) ---
-if command -v direnv &>/dev/null; then
-  log "direnv already installed"
-else
+if ! have direnv; then
   log "Installing direnv"
   if [[ "$os_name" == "Darwin" ]]; then
     brew install direnv
@@ -78,31 +69,24 @@ else
 fi
 
 # --- Pixi (fast package manager for Python/ML) ---
-if command -v pixi &>/dev/null; then
-  log "Pixi already installed"
-else
+if ! have pixi; then
   log "Installing Pixi"
   curl -fsSL https://pixi.sh/install.sh | bash -s -- --quiet >/dev/null 2>&1
 fi
 
 # --- Mutagen (real-time file sync for remote dev) ---
-if command -v mutagen &>/dev/null; then
-  log "Mutagen already installed"
-else
+if ! have mutagen; then
   log "Installing Mutagen"
   if [[ "$os_name" == "Darwin" ]]; then
     brew install -q mutagen-io/mutagen/mutagen
   elif [[ "$os_name" == "Linux" ]]; then
-    # Download latest release for Linux
     curl -fsSL https://github.com/mutagen-io/mutagen/releases/latest/download/mutagen_linux_amd64_v0.18.1.tar.gz | tar -xz -C /tmp
     sudo mv /tmp/mutagen /usr/local/bin/
   fi
 fi
 
 # --- Ghostty terminal ---
-if command -v ghostty &>/dev/null; then
-  log "Ghostty already installed"
-else
+if ! have ghostty; then
   if [[ "$os_name" == "Darwin" ]]; then
     log "Installing Ghostty (brew cask)"
     brew install -q --cask ghostty
@@ -113,18 +97,14 @@ else
 fi
 
 # --- Brave browser (Linux only, macOS has Safari) ---
-if [[ "$os_name" == "Linux" ]]; then
-  if command -v brave-browser &>/dev/null; then
-    log "Brave already installed"
-  else
-    log "Installing Brave (apt)"
-    sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
-      https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
-    echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" \
-      | sudo tee /etc/apt/sources.list.d/brave-browser-release.list >/dev/null
-    sudo apt-get update -qq
-    sudo apt-get install -qq -y brave-browser
-  fi
+if [[ "$os_name" == "Linux" ]] && ! have brave-browser; then
+  log "Installing Brave (apt)"
+  sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
+    https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+  echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" \
+    | sudo tee /etc/apt/sources.list.d/brave-browser-release.list >/dev/null
+  sudo apt-get update -qq
+  sudo apt-get install -qq -y brave-browser
 fi
 
 log "Done"

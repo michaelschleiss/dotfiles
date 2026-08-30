@@ -3,16 +3,12 @@ set -euo pipefail
 LOG_PREFIX="[libs]"
 source "$(dirname "$0")/_lib"
 
-# --- helpers ---
-
 install() {
-  case "$(uname -s)" in
+  case "$os_name" in
     Darwin) brew install -q "$1" ;;
     Linux)  sudo apt-get install -qq -y "${2:-$1}" ;;
   esac
 }
-
-# --- main ---
 
 install ripgrep
 install fd fd-find
@@ -20,13 +16,13 @@ install fzf
 install bat
 
 # tree-sitter CLI (needed for nvim-treesitter)
-case "$(uname -s)" in
+case "$os_name" in
   Darwin) brew install -q tree-sitter ;;
   Linux)  cargo install -q tree-sitter-cli ;;
 esac
 
 # On Ubuntu, bat binary is called 'batcat' - create symlink
-if [[ "$(uname -s)" == "Linux" ]] && command -v batcat &>/dev/null && ! command -v bat &>/dev/null; then
+if [[ "$os_name" == "Linux" ]] && have batcat && ! have bat; then
   mkdir -p ~/.local/bin
-  ln -sf "$(which batcat)" ~/.local/bin/bat
+  ln -sf "$(command -v batcat)" ~/.local/bin/bat
 fi
