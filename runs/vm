@@ -67,6 +67,12 @@ add_block_to_file "$HOME/.zprofile" "ai-env" 'export CLAUDE_CONFIG_DIR="${XDG_CO
 export CODEX_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/codex"
 export SERENA_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/serena"'
 
+# Login shell cannot be changed for OS Login users; hand interactive bash sessions to zsh.
+add_block_to_file "$HOME/.bashrc" "vm-zsh" 'if [[ $- == *i* ]] && [[ -z "${ZSH_VERSION:-}" ]] && command -v zsh >/dev/null 2>&1; then
+  export SHELL="$(command -v zsh)"
+  exec zsh -l
+fi'
+
 # Ghostty's terminfo is rarely present on remote hosts.
 add_block_to_file "$HOME/.zshrc" "vm-term" '[[ "$TERM" == "xterm-ghostty" ]] && export TERM=xterm-256color'
 add_block_to_file "$HOME/.zshrc" "vm-aliases" 'alias cc="claude"

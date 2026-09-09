@@ -32,10 +32,9 @@ fi
 # rsync is needed by dev-env before runs/vm gets a chance to install it.
 apt-get install -qq -y git curl sudo rsync zsh >/dev/null
 
-# OS Login users have no password, so runs/zsh's chsh cannot work; set the shell here
-# and export SHELL so the module sees it as already done.
-usermod -s /usr/bin/zsh "$USER_NAME"
-
+# OS Login accounts are not in /etc/passwd and have no password, so neither usermod nor
+# runs/zsh's chsh can change the login shell. Export SHELL so runs/zsh skips chsh;
+# runs/vm makes bash exec into zsh for interactive logins instead.
 as_user() { runuser -u "$USER_NAME" -- env HOME="$HOME_DIR" SHELL=/usr/bin/zsh "$@"; }
 
 DOTFILES="$HOME_DIR/personal/dotfiles"
