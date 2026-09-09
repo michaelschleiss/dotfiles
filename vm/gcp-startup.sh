@@ -46,7 +46,7 @@ else
   as_user mkdir -p "$HOME_DIR/personal"
   as_user git clone -q "$REPO" "$DOTFILES"
 fi
-as_user git -C "$DOTFILES" submodule update --init --quiet || true
+# Submodules use SSH URLs; runs/vm installs tpm over HTTPS instead.
 
 cd "$DOTFILES"
 log "deploying configs (dev-env)"

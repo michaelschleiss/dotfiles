@@ -58,6 +58,7 @@ copy_dir() {
   from=$1
   to=$2
 
+  execute mkdir -p "$to"
   for dir in "$from"/*/; do
     name=$(basename "$dir")
     if [[ "$name" == "serena" ]]; then
