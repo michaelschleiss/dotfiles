@@ -56,10 +56,17 @@ git config --global user.email "michael.schleiss@skd.systems"
 git config --global init.defaultBranch main
 git config --global pull.rebase false
 
+# The claude hooks deployed by dev-env expect rtk (same pin as runs/ai).
+install_pinned_github_release rtk rtk-ai/rtk 0.42.0 rtk-x86_64-unknown-linux-musl.tar.gz
+
 if [[ ! -d "$HOME/.tmux/plugins/tpm" ]]; then
   log "Installing tmux plugin manager"
   mkdir -p "$HOME/.tmux/plugins"
   git clone -q https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
+fi
+if [[ -f "$HOME/.config/tmux/tmux.conf" ]]; then
+  log "Installing tmux plugins"
+  TMUX_PLUGIN_MANAGER_PATH="$HOME/.tmux/plugins" "$HOME/.tmux/plugins/tpm/bin/install_plugins" >/dev/null || true
 fi
 
 # Same block name as runs/ai so the two never fight over it.
