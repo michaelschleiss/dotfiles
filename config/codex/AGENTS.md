@@ -25,5 +25,5 @@ Meta commands:
 ```bash
 rtk gain
 rtk gain --history
-rtk proxy <cmd>
+rtk bypass <cmd>
 ```

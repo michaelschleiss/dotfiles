@@ -56,8 +56,8 @@ git config --global user.email "michael.schleiss@skd.systems"
 git config --global init.defaultBranch main
 git config --global pull.rebase false
 
-# The claude hooks deployed by dev-env expect rtk (same pin as runs/ai).
-install_pinned_github_release rtk rtk-ai/rtk 0.42.0 rtk-x86_64-unknown-linux-musl.tar.gz
+# The claude hooks deployed by dev-env expect rtk.
+install_rtk
 
 if [[ ! -d "$HOME/.tmux/plugins/tpm" ]]; then
   log "Installing tmux plugin manager"

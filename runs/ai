@@ -52,28 +52,6 @@ install_codex() {
   have codex || { echo "Codex installation failed" >&2; return 1; }
 }
 
-install_rtk() {
-  ensure_cmd curl curl
-  ensure_cmd tar tar
-
-  local rtk_version="0.42.0"
-  local asset
-  case "${os_name}/${arch_name}" in
-    Darwin/arm64 | Darwin/aarch64) asset="rtk-aarch64-apple-darwin.tar.gz" ;;
-    Darwin/x86_64 | Darwin/amd64)  asset="rtk-x86_64-apple-darwin.tar.gz" ;;
-    Linux/x86_64  | Linux/amd64)   asset="rtk-x86_64-unknown-linux-musl.tar.gz" ;;
-    Linux/arm64   | Linux/aarch64) asset="rtk-aarch64-unknown-linux-gnu.tar.gz" ;;
-    *) echo "Unsupported platform for rtk: ${os_name} ${arch_name}" >&2; return 1 ;;
-  esac
-
-  install_pinned_github_release rtk rtk-ai/rtk "$rtk_version" "$asset"
-
-  if ! "${HOME}/.local/bin/rtk" gain >/dev/null 2>&1; then
-    echo "rtk installation verification failed: rtk gain did not succeed" >&2
-    return 1
-  fi
-}
-
 install_uv() {
   if [[ -x "${HOME}/.local/bin/uvx" ]]; then
     log "uv already installed: $("${HOME}/.local/bin/uv" --version 2>/dev/null || echo ok)"
