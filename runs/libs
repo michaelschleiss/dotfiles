@@ -17,7 +17,7 @@ install bat
 
 # tree-sitter CLI (needed for nvim-treesitter)
 case "$os_name" in
-  Darwin) brew install -q tree-sitter ;;
+  Darwin) brew install -q tree-sitter-cli ;;  # 'tree-sitter' is only the library
   Linux)
     # runs/base installs rustup in the same run, so cargo isn't on PATH yet.
     [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
