@@ -19,6 +19,43 @@ ensure_docker_group() {
   log "Logout and login for group changes to take effect (or run: newgrp docker)"
 }
 
+# The engine only runs while Docker Desktop is open; start it in the background at login.
+ensure_docker_autostart() {
+  [[ "$os_name" == "Darwin" ]] || return 0
+  local label="com.docker.desktop-autostart"
+  local plist_path="${HOME}/Library/LaunchAgents/${label}.plist"
+  local uid
+  uid="$(id -u)"
+
+  mkdir -p "$(dirname "$plist_path")"
+  cat > "$plist_path" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>${label}</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/open</string>
+    <string>-g</string>
+    <string>-a</string>
+    <string>Docker</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+</dict>
+</plist>
+PLIST
+
+  if ! launchctl print "gui/${uid}/${label}" >/dev/null 2>&1; then
+    log "Starting Docker Desktop at login"
+    launchctl bootstrap "gui/${uid}" "$plist_path"
+  fi
+}
+
 install_docker() {
   case "$os_name" in
     Darwin)
@@ -68,6 +105,7 @@ else
   install_docker
 fi
 ensure_docker_group
+ensure_docker_autostart
 
 if have devpod; then
   log "DevPod already installed"
