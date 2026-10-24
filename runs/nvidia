@@ -55,8 +55,8 @@ install_nvidia_container_toolkit() {
 
 main() {
   if [[ "${os_name}" != "Linux" ]]; then
-    echo "This script only supports Linux." >&2
-    exit 1
+    log "Skipping: Linux only"
+    exit 0
   fi
 
   local ubuntu_ver=""
@@ -74,8 +74,8 @@ main() {
   log "Detected Ubuntu ${ubuntu_ver}"
 
   if ! lspci | grep -qi nvidia; then
-    echo "No NVIDIA GPU detected. Exiting." >&2
-    exit 1
+    log "Skipping: no NVIDIA GPU detected"
+    exit 0
   fi
 
   # Check if nvidia driver is already installed
