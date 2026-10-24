@@ -23,8 +23,11 @@ trap 'rm -rf "$build_dir"' EXIT
 git clone -q --branch "$TARGET_VERSION" --depth 1 https://github.com/tmux/tmux.git "$build_dir"
 cd "$build_dir"
 
+configure_flags=(--enable-utf8proc)
 if [[ "$os_name" == "Darwin" ]]; then
-  brew install -q automake pkg-config libevent ncurses utf8proc
+  # tmux >= 3.7c requires jemalloc on macOS (works around a calloc bug).
+  brew install -q automake pkg-config libevent ncurses utf8proc jemalloc
+  configure_flags+=(--enable-jemalloc)
   cores=$(sysctl -n hw.ncpu)
 elif [[ "$os_name" == "Linux" ]]; then
   sudo apt-get update -qq
@@ -43,7 +46,8 @@ else
 fi
 
 sh autogen.sh >/dev/null
-./configure --enable-utf8proc >/dev/null && make -s -j"$cores"
+./configure "${configure_flags[@]}" >/dev/null
+make -s -j"$cores"
 sudo make -s install
 
 install_tpm
