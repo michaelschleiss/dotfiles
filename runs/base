@@ -69,10 +69,19 @@ if ! have direnv; then
 fi
 
 # --- Pixi (fast package manager for Python/ML) ---
-if ! have pixi; then
+# PATH comes from runs/zsh-profile; keep the installer out of shell rc files.
+if ! have pixi && [[ ! -x "$HOME/.pixi/bin/pixi" ]]; then
   log "Installing Pixi"
-  curl -fsSL https://pixi.sh/install.sh | bash -s -- --quiet >/dev/null 2>&1
+  curl -fsSL https://pixi.sh/install.sh | PIXI_NO_PATH_UPDATE=1 bash -s -- --quiet >/dev/null 2>&1
 fi
+# Drop the PATH line earlier Pixi installs appended.
+pixi_path_line="export PATH=\"$HOME/.pixi/bin:\$PATH\""
+for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
+  if grep -qxF -- "$pixi_path_line" "$rc" 2>/dev/null; then
+    log "Removing Pixi PATH line from $rc"
+    _sed_i "/^$(_re_escape "$pixi_path_line")\$/d" "$rc"
+  fi
+done
 
 # --- Mutagen (real-time file sync for remote dev) ---
 if ! have mutagen; then
