@@ -10,7 +10,7 @@ fi
 
 ensure_cmd lazygit lazygit
 
-TARGET_VERSION="v0.11.5"
+TARGET_VERSION="v0.12.6"
 
 if nvim --version 2>/dev/null | head -1 | grep -q "${TARGET_VERSION#v}"; then
   log "Neovim $TARGET_VERSION already installed, skipping build..."

@@ -1,6 +1,5 @@
 return {
 	"jalvesaq/zotcite",
-	branch = "pynvim",  -- Required for Neovim < 0.11.5
 	pin = true,  -- IMPORTANT: Local patches in lsp.lua - don't update without reapplying
 	-- Patches applied to ~/.local/share/nvim/lazy/zotcite/lua/zotcite/lsp.lua:
 	--   1. Line ~318: Added 'return' after set_compl_region_rnw() for tex files
