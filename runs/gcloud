@@ -4,9 +4,25 @@ LOG_PREFIX="[gcloud]"
 source "$(dirname "$0")/_lib"
 
 INSTALL_DIR="$HOME/.local/share/google-cloud-sdk"
+export PATH="$HOME/.local/bin:$PATH"
 
-if have gcloud; then
-  log "gcloud already installed: $(gcloud --version 2>/dev/null | head -1)"
+# gcloud needs Python >= 3.10; macOS ships 3.9. Fall back to a uv-managed
+# interpreter (~/.local/bin/python3.12 tracks patch upgrades).
+python_env=""
+if ! python3 -c 'import sys; sys.exit(sys.version_info < (3, 10))' 2>/dev/null; then
+  have uv || { echo "Python >= 3.10 or uv required (run runs/ai first)" >&2; exit 1; }
+  log "Installing Python 3.12 (uv) for gcloud"
+  uv python install -q 3.12
+  export CLOUDSDK_PYTHON="$HOME/.local/bin/python3.12"
+  python_env=$'\nexport CLOUDSDK_PYTHON="$HOME/.local/bin/python3.12"'
+fi
+
+# Shell integration
+add_block_to_file "$HOME/.zprofile" "gcloud" \
+  "export PATH=\"$INSTALL_DIR/bin:\$PATH\"$python_env"
+
+if "$INSTALL_DIR/bin/gcloud" --version >/dev/null 2>&1; then
+  log "gcloud already installed: $("$INSTALL_DIR/bin/gcloud" --version 2>/dev/null | head -1)"
   exit 0
 fi
 
@@ -33,11 +49,7 @@ tar -xf "$tmpdir/$archive" -C "$(dirname "$INSTALL_DIR")"
 rm -rf "$tmpdir"
 
 log "Running install script"
-"$INSTALL_DIR/install.sh" --quiet --path-update false --command-completion false
-
-# Shell integration
-add_block_to_file "$HOME/.zprofile" "gcloud" \
-  "export PATH=\"$INSTALL_DIR/bin:\$PATH\""
+"$INSTALL_DIR/install.sh" --quiet --path-update false --command-completion false --install-python false
 
 log "Done. Restart shell or run: source ~/.zprofile"
 log "Then: gcloud init && gcloud auth configure-docker europe-west10-docker.pkg.dev"
