@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+LOG_PREFIX="[netbird]"
+source "$(dirname "$0")/_lib"
+
+# NetBird VPN client (company network, e.g. gitlab.stark-defence.com).
+# The official installer uses the signed .pkg on macOS and the apt repo on
+# Linux (UI only with a desktop session), and installs the daemon service.
+# It refuses to run over an existing install; updates go through the
+# package manager or the app itself.
+
+if have netbird; then
+  log "netbird already installed: $(netbird version 2>/dev/null || echo ok)"
+  exit 0
+fi
+
+log "Installing NetBird (official installer, needs sudo)"
+curl -fsSL --proto '=https' https://pkgs.netbird.io/install.sh | sh
+
+have netbird || { echo "NetBird installation failed" >&2; exit 1; }
+log "Done. Connect with: netbird up"
