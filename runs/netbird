@@ -9,13 +9,23 @@ source "$(dirname "$0")/_lib"
 # It refuses to run over an existing install; updates go through the
 # package manager or the app itself.
 
+# Company uses NetBird cloud with Okta SSO. Override for a self-hosted setup.
+MANAGEMENT_URL="${NETBIRD_MANAGEMENT_URL:-https://api.netbird.io:443}"
+
 if have netbird; then
   log "netbird already installed: $(netbird version 2>/dev/null || echo ok)"
-  exit 0
+else
+  log "Installing NetBird (official installer, needs sudo)"
+  curl -fsSL --proto '=https' https://pkgs.netbird.io/install.sh | sh
+  have netbird || { echo "NetBird installation failed" >&2; exit 1; }
 fi
 
-log "Installing NetBird (official installer, needs sudo)"
-curl -fsSL --proto '=https' https://pkgs.netbird.io/install.sh | sh
-
-have netbird || { echo "NetBird installation failed" >&2; exit 1; }
-log "Done. Connect with: netbird up"
+if netbird status 2>/dev/null | grep -q 'Management: Connected'; then
+  log "Already connected"
+elif [[ -t 0 && -t 1 ]]; then
+  # Opens the browser for SSO: log in via Okta with the skd.systems address.
+  log "Connecting to $MANAGEMENT_URL (log in via Okta in the browser)"
+  netbird up --management-url "$MANAGEMENT_URL"
+else
+  log "Not connected. Run: netbird up --management-url $MANAGEMENT_URL (Okta login)"
+fi
