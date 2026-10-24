@@ -60,6 +60,9 @@ if ! gh auth status &>/dev/null; then
   gh auth login -p ssh -h github.com -w
 fi
 
+# HTTPS remotes (e.g. this repo) authenticate with the gh login.
+gh auth setup-git --hostname github.com
+
 if gh api user/keys --paginate --jq '.[].key' | grep -qF "$PUBKEY_BODY"; then
   log "SSH key already on GitHub"
 else
