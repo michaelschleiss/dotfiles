@@ -7,12 +7,18 @@ verbose="0"
 requested=()
 
 cd "$script_dir"
+# Core modules run first, in this order: base installs package managers,
+# zsh-profile puts ~/.local/bin etc. on PATH for everything installed later.
+core=(base zsh-profile)
 scripts=()
 while IFS= read -r script; do
     scripts+=("$script")
 done < <(
-    [[ -x runs/base ]] && printf '%s\n' runs/base
-    find runs -maxdepth 1 -mindepth 1 -type f -perm -u=x ! -name base | sort
+    for name in "${core[@]}"; do
+        [[ -x "runs/$name" ]] && printf '%s\n' "runs/$name"
+    done
+    find runs -maxdepth 1 -mindepth 1 -type f -perm -u=x \
+        $(printf -- '! -name %s ' "${core[@]}") | sort
 )
 
 while [[ $# > 0 ]]; do
@@ -75,7 +81,23 @@ execute() {
 
 log "run: modules=${requested[*]:-all}"
 
+# A failing module doesn't stop the run, except a core one: everything else
+# depends on it.
+failed=()
 for script in "${scripts[@]}"; do
     log "running script: $script"
-    execute ./$script
+    if ! execute ./$script; then
+        name="$(basename "$script")"
+        echo "run: module failed: $name" >&2
+        failed+=("$name")
+        if [[ " ${core[*]} " == *" $name "* ]]; then
+            echo "run: aborting, core module failed" >&2
+            exit 1
+        fi
+    fi
 done
+
+if (( ${#failed[@]} > 0 )); then
+    echo "run: failed modules: ${failed[*]}" >&2
+    exit 1
+fi
