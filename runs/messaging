@@ -30,7 +30,7 @@ if ! have slack && [[ ! -d "/Applications/Slack.app" ]]; then
   elif [[ "$os_name" == "Linux" ]]; then
     log "Installing Slack (.deb)"
     tmpdir="$(mktemp -d)"
-    curl -L "https://downloads.slack-edge.com/desktop-releases/linux/x64/4.41.105/slack-desktop-4.41.105-amd64.deb" -o "$tmpdir/slack.deb"
+    curl -L "https://downloads.slack-edge.com/desktop-releases/linux/x64/4.52.182/slack-desktop-4.52.182-amd64.deb" -o "$tmpdir/slack.deb"
     sudo apt-get install -qq -y "$tmpdir/slack.deb"
     rm -rf "$tmpdir"
   fi

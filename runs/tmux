@@ -3,7 +3,7 @@ set -euo pipefail
 LOG_PREFIX="[tmux]"
 source "$(dirname "$0")/_lib"
 
-TARGET_VERSION="3.5a"
+TARGET_VERSION="3.8"
 
 install_tpm() {
   mkdir -p ~/.tmux/plugins
