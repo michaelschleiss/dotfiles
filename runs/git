@@ -42,14 +42,14 @@ git config --global pull.rebase false
 
 # --- SSH key ---
 SSH_KEY="$HOME/.ssh/id_ed25519"
-KEY_CREATED=false
 
 if [[ ! -f "$SSH_KEY" ]]; then
   log "Generating SSH key"
   mkdir -p "$HOME/.ssh"
   ssh-keygen -t ed25519 -C "$GIT_EMAIL" -f "$SSH_KEY" -N ""
-  KEY_CREATED=true
 fi
+# Base64 body of the public key, to detect whether a host already has it.
+PUBKEY_BODY="$(cut -d' ' -f2 "$SSH_KEY.pub")"
 
 eval "$(ssh-agent -s)" > /dev/null
 ssh-add "$SSH_KEY" 2>/dev/null
@@ -60,19 +60,28 @@ if ! gh auth status &>/dev/null; then
   gh auth login -p ssh -h github.com -w
 fi
 
-if [[ "$KEY_CREATED" == true ]]; then
+if gh api user/keys --paginate --jq '.[].key' | grep -qF "$PUBKEY_BODY"; then
+  log "SSH key already on GitHub"
+else
   log "Adding SSH key to GitHub"
   gh ssh-key add "$SSH_KEY.pub" --title "$(hostname)"
 fi
 
 # --- GitLab auth and SSH key upload ---
 GITLAB_HOST="gitlab.stark-defence.com"
+if ! curl -fsS --max-time 5 -o /dev/null "https://$GITLAB_HOST/users/sign_in"; then
+  echo "[git] $GITLAB_HOST not reachable - connect to the company VPN and rerun: ./run git" >&2
+  exit 1
+fi
+
 if ! glab auth status --hostname "$GITLAB_HOST" &>/dev/null; then
   log "Authenticating with GitLab ($GITLAB_HOST)"
   glab auth login --hostname "$GITLAB_HOST"
 fi
 
-if [[ "$KEY_CREATED" == true ]]; then
+if glab api user/keys --paginate --hostname "$GITLAB_HOST" | grep -qF "$PUBKEY_BODY"; then
+  log "SSH key already on GitLab"
+else
   log "Adding SSH key to GitLab"
   glab ssh-key add "$SSH_KEY.pub" --title "$(hostname)" --hostname "$GITLAB_HOST"
 fi
