@@ -40,10 +40,10 @@ elif [[ "$os_name" == "Linux" ]]; then
     python3-pip \
     python3-venv
   sudo systemctl enable --now ssh -q
-  # Install Node.js 22 LTS via NodeSource (apt version is too old)
-  if ! command -v node &>/dev/null; then
-    log "Installing Node.js 22 LTS via NodeSource"
-    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+  # Install Node.js 24 LTS via NodeSource (apt version is too old)
+  if ! command -v node &>/dev/null || (( $(node -v | cut -d. -f1 | tr -d v) < 24 )); then
+    log "Installing Node.js 24 LTS via NodeSource"
+    curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
     sudo apt-get install -qq -y nodejs
   fi
   # Install Rust via rustup (apt version is too old)
@@ -84,14 +84,24 @@ for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
 done
 
 # --- Mutagen (real-time file sync for remote dev) ---
-if ! have mutagen; then
+mutagen_version="0.18.1"
+if [[ "$os_name" == "Darwin" ]] && ! have mutagen; then
   log "Installing Mutagen"
-  if [[ "$os_name" == "Darwin" ]]; then
-    brew install -q mutagen-io/mutagen/mutagen
-  elif [[ "$os_name" == "Linux" ]]; then
-    curl -fsSL https://github.com/mutagen-io/mutagen/releases/latest/download/mutagen_linux_amd64_v0.18.1.tar.gz | tar -xz -C /tmp
-    sudo mv /tmp/mutagen /usr/local/bin/
-  fi
+  brew install -q mutagen-io/mutagen/mutagen
+elif [[ "$os_name" == "Linux" ]] && [[ "$(mutagen version 2>/dev/null)" != "$mutagen_version" ]]; then
+  case "$arch_name" in
+    x86_64) mutagen_arch="amd64" ;;
+    aarch64 | arm64) mutagen_arch="arm64" ;;
+    *) echo "Unsupported architecture for Mutagen: $arch_name" >&2; exit 1 ;;
+  esac
+  log "Installing Mutagen $mutagen_version"
+  mutagen_tmp="$(mktemp -d)"
+  curl -fsSL "https://github.com/mutagen-io/mutagen/releases/download/v${mutagen_version}/mutagen_linux_${mutagen_arch}_v${mutagen_version}.tar.gz" \
+    | tar -xz -C "$mutagen_tmp"
+  # The agent bundle must sit next to the binary for remote syncs.
+  sudo install -m 0755 "$mutagen_tmp/mutagen" /usr/local/bin/mutagen
+  sudo install -m 0644 "$mutagen_tmp/mutagen-agents.tar.gz" /usr/local/bin/mutagen-agents.tar.gz
+  rm -rf "$mutagen_tmp"
 fi
 
 # --- Ghostty terminal ---

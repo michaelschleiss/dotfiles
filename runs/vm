@@ -34,9 +34,9 @@ mkdir -p "$HOME/.local/bin"
 have bat  || { have batcat && ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"; }
 have fd   || { have fdfind && ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd"; }
 
-if ! have node || [[ "$(node -v | cut -c2-3)" -lt 22 ]]; then
-  log "Installing Node.js 22 LTS via NodeSource"
-  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - >/dev/null
+if ! have node || (( $(node -v | cut -d. -f1 | tr -d v) < 24 )); then
+  log "Installing Node.js 24 LTS via NodeSource"
+  curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash - >/dev/null
   sudo apt-get install -qq -y nodejs
 fi
 
