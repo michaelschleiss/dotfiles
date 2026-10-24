@@ -18,7 +18,12 @@ install bat
 # tree-sitter CLI (needed for nvim-treesitter)
 case "$os_name" in
   Darwin) brew install -q tree-sitter ;;
-  Linux)  cargo install -q tree-sitter-cli ;;
+  Linux)
+    # runs/base installs rustup in the same run, so cargo isn't on PATH yet.
+    [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+    ensure_cmd cargo
+    cargo install -q --locked tree-sitter-cli@0.25.0
+    ;;
 esac
 
 # On Ubuntu, bat binary is called 'batcat' - create symlink

@@ -34,9 +34,6 @@ else
     tar -xzf /tmp/lazygit.tar.gz -C /tmp lazygit
     sudo install /tmp/lazygit /usr/local/bin
     rm /tmp/lazygit.tar.gz /tmp/lazygit
-    log "Installing tree-sitter CLI..."
-    source ~/.cargo/env
-    cargo install tree-sitter-cli@0.25.0
     ln -sf $(which fdfind) ~/.local/bin/fd
     cores=$(nproc)
   else
