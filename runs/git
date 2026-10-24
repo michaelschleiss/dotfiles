@@ -79,11 +79,18 @@ if ! glab auth status --hostname "$GITLAB_HOST" &>/dev/null; then
   glab auth login --hostname "$GITLAB_HOST"
 fi
 
+# Git over SSH (port 2222) isn't routed through NetBird, so use HTTPS with the
+# glab login. The empty entry drops inherited helpers (e.g. osxkeychain) for this host.
+git config --global --replace-all "credential.https://$GITLAB_HOST.helper" ""
+git config --global --add "credential.https://$GITLAB_HOST.helper" "!glab auth git-credential"
+
 if glab api user/keys --paginate --hostname "$GITLAB_HOST" | grep -qF "$PUBKEY_BODY"; then
   log "SSH key already on GitLab"
 else
   log "Adding SSH key to GitLab"
-  glab ssh-key add "$SSH_KEY.pub" --title "$(hostname)" --hostname "$GITLAB_HOST"
+  # Via the API: 'glab ssh-key add' has no --hostname and targets the current repo's host.
+  glab api user/keys --hostname "$GITLAB_HOST" -X POST \
+    -f title="$(hostname)" -f key="$(cat "$SSH_KEY.pub")" >/dev/null
 fi
 
 log "Done"
