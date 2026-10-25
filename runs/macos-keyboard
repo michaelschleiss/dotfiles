@@ -8,8 +8,9 @@ if [[ "$os_name" != "Darwin" ]]; then
   exit 0
 fi
 
-plist_path="${HOME}/Library/LaunchAgents/com.michael.capslock-delay.plist"
-label="com.michael.capslock-delay"
+label="com.michael.keyboard"
+plist_path="${HOME}/Library/LaunchAgents/${label}.plist"
+old_label="com.michael.capslock-delay"
 uid="$(id -u)"
 
 mkdir -p "$(dirname "$plist_path")"
@@ -18,34 +19,44 @@ log "Setting fast key repeat"
 defaults write -g KeyRepeat -int 1
 defaults write -g InitialKeyRepeat -int 10
 
-log "Mapping Caps Lock -> Control (native modifier mapping)"
-# Same setting as System Settings > Keyboard > Modifier Keys. It is keyed by
-# keyboard vendor-product id, so write it for every keyboard currently attached.
-# HID usages: 0x700000039 = Caps Lock, 0x7000000E0 = Left Control.
-while read -r vendor product; do
-  defaults -currentHost write -g "com.apple.keyboard.modifiermapping.$((vendor))-$((product))-0" -array \
-    '<dict><key>HIDKeyboardModifierMappingSrc</key><integer>30064771129</integer><key>HIDKeyboardModifierMappingDst</key><integer>30064771296</integer></dict>'
-done < <(hidutil list --matching '{"PrimaryUsagePage":1,"PrimaryUsage":6}' | awk '$1 ~ /^0x/ {print $1, $2}' | sort -u)
+# Caps Lock -> Left Control via hidutil (HID usages 0x700000039 -> 0x7000000E0),
+# plus no Caps Lock activation delay. The native per-keyboard modifiermapping
+# preference no longer takes effect on macOS 27, and a one-shot UserKeyMapping
+# lapses after deep-sleep wake, so the agent re-applies it every minute
+# (launchd also fires a missed interval right after wake).
+hid_props='{"CapsLockDelayOverride":0,"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x7000000E0}]}'
+
+if launchctl print "gui/${uid}/${old_label}" >/dev/null 2>&1; then
+  log "Removing superseded ${old_label} LaunchAgent"
+  launchctl bootout "gui/${uid}/${old_label}" >/dev/null 2>&1 || true
+fi
+rm -f "${HOME}/Library/LaunchAgents/${old_label}.plist"
 
 log "Installing ${label} LaunchAgent"
-cat > "${plist_path}" <<'PLIST'
+cat > "${plist_path}" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.michael.capslock-delay</string>
+  <string>${label}</string>
 
   <key>ProgramArguments</key>
   <array>
     <string>/usr/bin/hidutil</string>
     <string>property</string>
     <string>--set</string>
-    <string>{"CapsLockDelayOverride":0}</string>
+    <string>${hid_props}</string>
   </array>
 
   <key>RunAtLoad</key>
   <true/>
+
+  <key>StartInterval</key>
+  <integer>60</integer>
+
+  <key>StandardOutPath</key>
+  <string>/dev/null</string>
 </dict>
 </plist>
 PLIST
