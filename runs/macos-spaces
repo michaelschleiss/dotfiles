@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+LOG_PREFIX="[macos-spaces]"
+source "$(dirname "$0")/_lib"
+
+if [[ "$os_name" != "Darwin" ]]; then
+  log "Skipping: macOS only"
+  exit 0
+fi
+
+# AeroSpace runs its own workspaces on a single native Space per display, so
+# keep macOS Spaces and Mission Control out of the way.
+
+log "Using one Space across all displays"
+# Unchecks "Displays have separate Spaces"; needs a logout to take effect.
+defaults write com.apple.spaces spans-displays -bool true
+
+log "Configuring Spaces and Mission Control"
+defaults write com.apple.dock mru-spaces -bool false
+# Group windows by app so the overview stays readable with AeroSpace's
+# hidden (off-screen) windows.
+defaults write com.apple.dock expose-group-apps -bool true
+
+log "Disabling Mission Control trackpad gestures"
+for domain in com.apple.AppleMultitouchTrackpad com.apple.driver.AppleBluetoothMultitouch.trackpad; do
+  # Vertical swipes: Mission Control / App Exposé; horizontal: switch Spaces.
+  defaults write "$domain" TrackpadThreeFingerVertSwipeGesture -int 0
+  defaults write "$domain" TrackpadFourFingerVertSwipeGesture -int 0
+  defaults write "$domain" TrackpadThreeFingerHorizSwipeGesture -int 0
+  defaults write "$domain" TrackpadFourFingerHorizSwipeGesture -int 0
+done
+defaults write com.apple.dock showMissionControlGestureEnabled -bool false
+defaults write com.apple.dock showAppExposeGestureEnabled -bool false
+
+log "Disabling Mission Control keyboard shortcuts"
+# Symbolic hotkey IDs: 32/34 Mission Control, 33/35 Application windows,
+# 79/80 move left a Space, 81/82 move right a Space, 118-126 switch to Desktop 1-9.
+for id in 32 33 34 35 79 80 81 82 {118..126}; do
+  defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys \
+    -dict-add "$id" '<dict><key>enabled</key><false/></dict>'
+done
+/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
+
+killall Dock
+
+log "Done (log out and back in for all changes to apply)"
