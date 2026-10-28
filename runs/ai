@@ -135,7 +135,10 @@ main() {
 export CODEX_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/codex"
 export SERENA_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/serena"'
 
+  # The generated script calls compdef, which only exists after compinit; this
+  # block can land before the zsh module's compinit since modules run in order.
   add_block_to_file "$HOME/.zshrc" "codex-completion" 'if [[ -o interactive ]] && command -v codex >/dev/null 2>&1; then
+  (( $+functions[compdef] )) || { autoload -Uz compinit && compinit; }
   eval "$(codex completion zsh)"
 fi'
 
