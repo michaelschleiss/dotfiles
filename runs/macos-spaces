@@ -32,6 +32,12 @@ done
 defaults write com.apple.dock showMissionControlGestureEnabled -bool false
 defaults write com.apple.dock showAppExposeGestureEnabled -bool false
 
+log "Disabling hot corners"
+for corner in tl tr bl br; do
+  defaults write com.apple.dock "wvous-${corner}-corner" -int 1
+  defaults write com.apple.dock "wvous-${corner}-modifier" -int 0
+done
+
 log "Disabling Mission Control keyboard shortcuts"
 # Symbolic hotkey IDs: 32/34 Mission Control, 33/35 Application windows,
 # 79/80 move left a Space, 81/82 move right a Space, 118-126 switch to Desktop 1-9.
