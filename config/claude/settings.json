@@ -49,5 +49,9 @@
     "rust-analyzer-lsp@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
-  "teammateMode": "auto"
+  "teammateMode": "auto",
+  "statusLine": {
+    "type": "command",
+    "command": "bash \"$HOME/.config/claude/statusline-command.sh\""
+  }
 }
