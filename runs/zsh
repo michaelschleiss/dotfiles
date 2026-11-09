@@ -49,10 +49,14 @@ EOF
 mkdir -p "$HOME/.zfunc"
 
 # The only compinit in .zshrc. Every completion dir must be on fpath before it
-# runs: compinit rebuilds ~/.zcompdump from scratch whenever fpath differs from
-# the dump, so a second compinit with a different fpath rebuilds on every shell.
-# The full check (rebuild + compaudit) runs at most daily; otherwise the dump is
-# trusted (compinit -C). After adding completions: rm ~/.zcompdump
+# runs: compinit rebuilds ~/.zcompdump whenever fpath differs from the dump, so
+# a second compinit with a different fpath rebuilds on every shell start.
+#
+# Cache: compinit -C trusts the dump blindly, and even plain compinit only
+# compares the file count. So rebuild from scratch exactly when the inputs
+# changed: fpath itself (recorded in .zcompdump.fpath) or any fpath dir newer
+# than the dump (adding/removing/renaming a file bumps the dir's mtime). File
+# contents need no check: the dump holds autoload stubs, bodies load on use.
 add_zsh_block "zsh-completion" <<'EOF'
 fpath=(~/.zfunc(N/) ~/.docker/completions(N/) $fpath)
 zmodload zsh/complist
@@ -62,11 +66,13 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' 'r:|[._-]=* r:|=*'
 autoload -Uz compinit
 () {
   local dump=${ZDOTDIR:-$HOME}/.zcompdump
-  local -a fresh=( $dump(N.mh-24) )
-  if (( $#fresh )); then
+  local stamp=$dump.fpath
+  local -a newer=( $^fpath(N/e:'[[ $REPLY -nt $dump ]]':) )
+  if [[ -s $dump && -r $stamp && "$(<$stamp)" == "$fpath" ]] && (( ! $#newer )); then
     compinit -C -d $dump
   else
-    compinit -d $dump && touch -- $dump
+    rm -f -- $dump
+    compinit -d $dump && print -r -- "$fpath" >| $stamp
   fi
 }
 EOF

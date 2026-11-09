@@ -53,8 +53,8 @@ install_codex() {
 }
 
 # Write codex's zsh completion into ~/.zfunc (on fpath via runs/zsh). Regenerated
-# on every run so it follows codex upgrades; a changed file invalidates the
-# completion dump, which zsh otherwise trusts for up to a day.
+# on every run so it follows codex upgrades. Only replaced when changed, so the
+# ~/.zfunc mtime (which triggers a completion rebuild) stays put otherwise.
 install_codex_completion() {
   local dir="${HOME}/.zfunc" target="${HOME}/.zfunc/_codex" tmp
   mkdir -p "${dir}"
@@ -71,7 +71,6 @@ install_codex_completion() {
   fi
   mv "${tmp}" "${target}"
   chmod 0644 "${target}"
-  rm -f "${ZDOTDIR:-$HOME}/.zcompdump"
   log "Installed codex zsh completion to ${target}"
 }
 
