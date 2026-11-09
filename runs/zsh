@@ -48,6 +48,14 @@ EOF
 # Generated completion functions (e.g. _codex from runs/ai) live in ~/.zfunc.
 mkdir -p "$HOME/.zfunc"
 
+# ~/.zshenv is read by every zsh, including non-interactive ones. Docker
+# Desktop checks for its completion in a non-interactive zsh (which skips
+# .zshrc) and shows a warning + "Install" button when missing; clicking that
+# appends a second compinit to .zshrc. Putting its dir on fpath here satisfies
+# the check. -U keeps fpath free of duplicates when zsh-completion re-adds it.
+add_block_to_file "$HOME/.zshenv" "docker-completion-fpath" 'typeset -U fpath
+fpath=(~/.docker/completions(N/) $fpath)'
+
 # The only compinit in .zshrc. Every completion dir must be on fpath before it
 # runs: compinit rebuilds ~/.zcompdump whenever fpath differs from the dump, so
 # a second compinit with a different fpath rebuilds on every shell start.
