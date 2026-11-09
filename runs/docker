@@ -56,32 +56,6 @@ PLIST
   fi
 }
 
-# Stop Docker Desktop from appending its fpath+compinit block to ~/.zshrc: that
-# second compinit forces a full completion rebuild on every shell start. Docker
-# completions still work: runs/zsh puts ~/.docker/completions on fpath.
-# (Install setting osIntegration.configureShellCompletion; the settings store
-# is only read at startup and rewritten on quit, so edit it while Docker is down.)
-disable_docker_shell_completion() {
-  [[ "$os_name" == "Darwin" ]] || return 0
-  local store="${HOME}/Library/Group Containers/group.com.docker/settings-store.json"
-  [[ -f "$store" ]] || { log "Docker settings store not found yet; start Docker once, quit, re-run"; return 0; }
-  if pgrep -xq "com.docker.backend"; then
-    log "Docker Desktop is running; quit it and re-run to disable its shell completion setup"
-    return 0
-  fi
-  python3 - "$store" <<'PY'
-import json, pathlib, sys
-p = pathlib.Path(sys.argv[1])
-d = json.loads(p.read_text())
-if d.get("ConfigureShellCompletion") is False:
-    print("[docker] ✓ shell completion setup already disabled")
-    sys.exit(0)
-d["ConfigureShellCompletion"] = False
-p.write_text(json.dumps(d, indent=2) + "\n")
-print("[docker] Disabled Docker Desktop shell completion setup")
-PY
-}
-
 install_docker() {
   case "$os_name" in
     Darwin)
@@ -132,7 +106,6 @@ else
 fi
 ensure_docker_group
 ensure_docker_autostart
-disable_docker_shell_completion
 
 if have devpod; then
   log "DevPod already installed"
