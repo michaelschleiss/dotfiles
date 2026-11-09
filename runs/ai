@@ -52,6 +52,29 @@ install_codex() {
   have codex || { echo "Codex installation failed" >&2; return 1; }
 }
 
+# Write codex's zsh completion into ~/.zfunc (on fpath via runs/zsh). Regenerated
+# on every run so it follows codex upgrades; a changed file invalidates the
+# completion dump, which zsh otherwise trusts for up to a day.
+install_codex_completion() {
+  local dir="${HOME}/.zfunc" target="${HOME}/.zfunc/_codex" tmp
+  mkdir -p "${dir}"
+  tmp="$(mktemp)"
+  if ! codex completion zsh > "${tmp}"; then
+    rm -f "${tmp}"
+    echo "codex completion generation failed" >&2
+    return 1
+  fi
+  if cmp -s "${tmp}" "${target}"; then
+    rm -f "${tmp}"
+    log "codex zsh completion up to date"
+    return 0
+  fi
+  mv "${tmp}" "${target}"
+  chmod 0644 "${target}"
+  rm -f "${ZDOTDIR:-$HOME}/.zcompdump"
+  log "Installed codex zsh completion to ${target}"
+}
+
 install_uv() {
   if [[ -x "${HOME}/.local/bin/uvx" ]]; then
     log "uv already installed: $("${HOME}/.local/bin/uv" --version 2>/dev/null || echo ok)"
@@ -135,12 +158,10 @@ main() {
 export CODEX_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/codex"
 export SERENA_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/serena"'
 
-  # The generated script calls compdef, which only exists after compinit; this
-  # block can land before the zsh module's compinit since modules run in order.
-  add_block_to_file "$HOME/.zshrc" "codex-completion" 'if [[ -o interactive ]] && command -v codex >/dev/null 2>&1; then
-  (( $+functions[compdef] )) || { autoload -Uz compinit && compinit; }
-  eval "$(codex completion zsh)"
-fi'
+  install_codex_completion
+  # Replaced by ~/.zfunc/_codex: eval'ing `codex completion zsh` cost a process
+  # per shell and needed its own compinit when placed before runs/zsh's.
+  remove_block_from_file "$HOME/.zshrc" "codex-completion"
 
   add_block_to_file "$HOME/.zshrc" "ai-aliases" 'alias cc="claude --allow-dangerously-skip-permissions"'
 

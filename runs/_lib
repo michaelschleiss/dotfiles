@@ -154,8 +154,21 @@ add_block_to_file() {
             log "✓ $name already in $file"
             return 0
         fi
+        # Replace in place: blocks depend on their order in the file (e.g. compinit
+        # must precede anything calling compdef), so an update must not move it.
         log "📝 Updating $name in $file..."
-        _sed_i "/$marker_re/,/$marker_end_re/d" "$file"
+        local tmp
+        tmp="$(mktemp)"
+        BLOCK_CONTENT="$content" awk -v start="$marker" -v end="$marker_end" '
+            $0 == start { print; print ENVIRON["BLOCK_CONTENT"]; skip = 1; next }
+            skip && $0 == end { skip = 0 }
+            !skip { print }
+        ' "$file" > "$tmp"
+        # Write through (not mv) so the file keeps its permissions and symlinks.
+        cat "$tmp" > "$file"
+        rm -f "$tmp"
+        log "✓ Updated $name"
+        return 0
     else
         log "📝 Adding $name to $file..."
     fi

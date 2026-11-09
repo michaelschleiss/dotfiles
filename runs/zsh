@@ -45,13 +45,43 @@ setopt EXTENDED_HISTORY
 setopt HIST_IGNORE_SPACE
 EOF
 
+# Generated completion functions (e.g. _codex from runs/ai) live in ~/.zfunc.
+mkdir -p "$HOME/.zfunc"
+
+# The only compinit in .zshrc. Every completion dir must be on fpath before it
+# runs: compinit rebuilds ~/.zcompdump from scratch whenever fpath differs from
+# the dump, so a second compinit with a different fpath rebuilds on every shell.
+# The full check (rebuild + compaudit) runs at most daily; otherwise the dump is
+# trusted (compinit -C). After adding completions: rm ~/.zcompdump
 add_zsh_block "zsh-completion" <<'EOF'
+fpath=(~/.zfunc(N/) ~/.docker/completions(N/) $fpath)
 zmodload zsh/complist
 zstyle ':completion:*' menu select
 zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' 'r:|[._-]=* r:|=*'
-autoload -Uz compinit && compinit
+autoload -Uz compinit
+() {
+  local dump=${ZDOTDIR:-$HOME}/.zcompdump
+  local -a fresh=( $dump(N.mh-24) )
+  if (( $#fresh )); then
+    compinit -C -d $dump
+  else
+    compinit -d $dump && touch -- $dump
+  fi
+}
 EOF
+
+# Docker Desktop appends its own fpath+compinit block to .zshrc (and re-adds it
+# on updates). Its fpath entry is in zsh-completion above; the extra compinit
+# would force a full completion rebuild on every shell start.
+remove_docker_desktop_completion() {
+  local start="# The following lines have been added by Docker Desktop to enable Docker CLI completions."
+  local end="# End of Docker CLI completions"
+  grep -qF -- "$start" "$HOME/.zshrc" 2>/dev/null || return 0
+  log "🗑  Removing Docker Desktop completion block from $HOME/.zshrc..."
+  _sed_i "/^$(_re_escape "$start")\$/,/^$(_re_escape "$end")\$/d" "$HOME/.zshrc"
+}
+remove_docker_desktop_completion
 
 add_zsh_block "zsh-aliases" <<'EOF'
 alias rsync="rsync -ahr --partial --partial-dir=/tmp/.rsync-partial --info=progress2 --no-inc-recursive -e 'ssh -T -o Compression=no' -c"
